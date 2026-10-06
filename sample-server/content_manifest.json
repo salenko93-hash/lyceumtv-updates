@@ -1,0 +1,25 @@
+{
+  "version": "android-1.0-bundled-01",
+  "schedules": {
+    "schedule_numerator.json": {
+      "url": "schedule_numerator.json",
+      "sha256": "106abcc43de3c0c5136734bb1fd6c5f453ccd444da8e55861cc72c99f3fd2523"
+    },
+    "schedule_denominator.json": {
+      "url": "schedule_denominator.json",
+      "sha256": "3130718b9ac0b7992012f238c0cbf292ca3dd29a1f968b48bba8aff1bb16f89f"
+    },
+    "shelter_numerator.json": {
+      "url": "shelter_numerator.json",
+      "sha256": "7947ec35954f7cc06de0c00609eb2204a39ffa58eeddc3fbda8a12751b52272b"
+    },
+    "shelter_denominator.json": {
+      "url": "shelter_denominator.json",
+      "sha256": "3b3c6d4a30355990de56b1822961fe64bca05fe91fff957755f608b4f9c3cd08"
+    }
+  },
+  "calendar": {
+    "url": "calendar.json",
+    "sha256": "6267d75357624a39a048bd916a5387bef9c273a54a7367ed02a38c68ed5e0584"
+  }
+}

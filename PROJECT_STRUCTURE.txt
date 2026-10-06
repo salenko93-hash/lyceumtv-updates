@@ -1,0 +1,45 @@
+LyceumMobile-Android-1.0-Redmi/
+├── app/
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/
+│       │   ├── AndroidManifest.xml
+│       │   ├── assets/
+│       │   │   ├── schedule_numerator.json
+│       │   │   ├── schedule_denominator.json
+│       │   │   ├── shelter_numerator.json
+│       │   │   ├── shelter_denominator.json
+│       │   │   └── calendar.json
+│       │   ├── java/ua/edu/cunl/lyceummobile/
+│       │   │   ├── MainActivity.kt
+│       │   │   ├── LyceumViewModel.kt
+│       │   │   ├── audio/SilenceMetronome.kt
+│       │   │   ├── core/
+│       │   │   │   ├── Models.kt
+│       │   │   │   ├── SchoolClock.kt
+│       │   │   │   └── ScheduleEngine.kt
+│       │   │   ├── data/
+│       │   │   │   ├── AlertsRepository.kt
+│       │   │   │   ├── ContentRepository.kt
+│       │   │   │   ├── JsonCodec.kt
+│       │   │   │   ├── ScheduleRepository.kt
+│       │   │   │   ├── SecureTokenStore.kt
+│       │   │   │   ├── SettingsStore.kt
+│       │   │   │   └── WeatherRepository.kt
+│       │   │   ├── network/HttpsClient.kt
+│       │   │   └── ui/
+│       │   │       ├── Components.kt
+│       │   │       ├── LyceumApp.kt
+│       │   │       ├── Screens.kt
+│       │   │       └── theme/Theme.kt
+│       │   └── res/raw/metronome_tick.wav
+│       └── test/java/.../ScheduleCoreTest.kt
+├── sample-server/
+│   ├── content_manifest.json
+│   └── 4 schedules + calendar.json
+├── tools/validate_project.py
+├── BUILD_AND_INSTALL.ps1
+├── WINDOWS_REDMI_GUIDE.md
+├── README.md
+├── build.gradle.kts
+└── settings.gradle.kts
