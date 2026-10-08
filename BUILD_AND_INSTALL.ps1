@@ -1,156 +1,128 @@
 ﻿param(
     [string]$Tv = "192.168.5.77:5555",
     [switch]$FreshInstall,
+    [switch]$ConfirmDataLoss,
     [switch]$BuildOnly
 )
 
 $ErrorActionPreference = "Stop"
-
-$project = Split-Path -Parent $MyInvocation.MyCommand.Path
+$project = $PSScriptRoot
 Set-Location $project
 
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
-
-$adb = "$env:ANDROID_HOME\platform-tools\adb.exe"
-
-if (!(Test-Path $adb)) {
-    throw "adb.exe not found: $adb"
+if ($FreshInstall -and -not $ConfirmDataLoss) {
+    throw "-FreshInstall erases app settings/token. Re-run with -ConfirmDataLoss only if this is intentional."
 }
 
-$jdkCandidates = @(
-    "$env:USERPROFILE\.jdks\jbr-17.0.14",
-    "$env:USERPROFILE\.jdks\jbr-17.0.13",
-    "$env:ProgramFiles\Android\Android Studio\jbr"
-)
+function Find-AndroidSdk {
+    $candidates = @($env:ANDROID_SDK_ROOT, $env:ANDROID_HOME, "$env:LOCALAPPDATA\Android\Sdk") |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    foreach ($candidate in $candidates) {
+        if (Test-Path (Join-Path $candidate "platform-tools\adb.exe")) { return $candidate }
+    }
+    throw "Android SDK/platform-tools not found."
+}
 
-$jdk = $null
+function Test-Jdk17([string]$JdkHome) {
+    if ([string]::IsNullOrWhiteSpace($JdkHome)) { return $false }
+    $java = Join-Path $JdkHome "bin\java.exe"
+    if (!(Test-Path $java)) { return $false }
+    $txt = (& cmd.exe /d /c "`"$java`" -version 2>&1") | Out-String
+    return $txt -match '"17(\.|")'
+}
 
-foreach ($candidate in $jdkCandidates) {
-    if (Test-Path "$candidate\bin\java.exe") {
-        $versionText = (& cmd.exe /d /c "`"$candidate\bin\java.exe`" -version 2>&1") | Out-String
-
-        if ($versionText -match '"17\.') {
-            $jdk = $candidate
-            break
+function Find-Jdk17 {
+    $candidates = @(
+        $env:JAVA_HOME,
+        "$env:ProgramFiles\Android\Android Studio\jbr",
+        "$env:ProgramFiles\Java\jdk-17",
+        "$env:ProgramFiles\Eclipse Adoptium\jdk-17*"
+    )
+    foreach ($candidate in $candidates) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        foreach ($item in @(Get-Item $candidate -ErrorAction SilentlyContinue | Sort-Object FullName -Descending)) {
+            if ($item -and (Test-Jdk17 $item.FullName)) { return $item.FullName }
         }
+        if ((Test-Path $candidate) -and (Test-Jdk17 $candidate)) { return $candidate }
     }
+    throw "JDK 17 not found."
 }
 
-if ($null -eq $jdk) {
-    throw "JDK 17 not found. Install/use JDK 17 and update BUILD_AND_INSTALL.ps1."
-}
-
-$env:JAVA_HOME = $jdk
+$env:ANDROID_HOME = Find-AndroidSdk
+$env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
+$env:JAVA_HOME = Find-Jdk17
 $env:Path = "$env:JAVA_HOME\bin;$env:Path"
+$adb = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe"
 
-Write-Host "JDK 17: $env:JAVA_HOME"
-
-$gradleRoot = Join-Path $project ".gradle-local"
-$gradleDir = Join-Path $gradleRoot "gradle-8.2"
+$gradleVersion = "8.2"
+$local = Join-Path $project ".gradle-local"
+$gradleDir = Join-Path $local "gradle-$gradleVersion"
 $gradleBat = Join-Path $gradleDir "bin\gradle.bat"
-$gradleZip = Join-Path $gradleRoot "gradle-8.2-bin.zip"
-$gradleUrl = "https://services.gradle.org/distributions/gradle-8.2-bin.zip"
+$zip = Join-Path $local "gradle-$gradleVersion-bin.zip"
+$url = "https://services.gradle.org/distributions/gradle-$gradleVersion-bin.zip"
+New-Item -ItemType Directory -Force $local | Out-Null
 
-New-Item -ItemType Directory -Force $gradleRoot | Out-Null
-
-function Test-ZipFile([string]$Path) {
-    if (!(Test-Path $Path)) {
-        return $false
-    }
-
+function Test-Zip([string]$Path) {
+    if (!(Test-Path $Path)) { return $false }
     try {
         Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
-        $archive = [System.IO.Compression.ZipFile]::OpenRead($Path)
-        $count = $archive.Entries.Count
-        $archive.Dispose()
-        return $count -gt 0
-    } catch {
-        return $false
-    }
+        $z = [System.IO.Compression.ZipFile]::OpenRead($Path)
+        $ok = $z.Entries.Count -gt 0
+        $z.Dispose()
+        return $ok
+    } catch { return $false }
 }
 
 if (!(Test-Path $gradleBat)) {
-    if ((Test-Path $gradleZip) -and !(Test-ZipFile $gradleZip)) {
-        Write-Host "Removing damaged Gradle ZIP..."
-        Remove-Item -Force $gradleZip
+    if ((Test-Path $zip) -and !(Test-Zip $zip)) { Remove-Item -Force $zip }
+    if (!(Test-Path $zip)) {
+        & curl.exe -L --fail --retry 5 --retry-delay 3 -o $zip $url
+        if ($LASTEXITCODE -ne 0) { throw "Gradle download failed." }
     }
-
-    if (!(Test-Path $gradleZip)) {
-        Write-Host "Downloading Gradle 8.2..."
-
-        & curl.exe -L --fail --retry 5 --retry-delay 3 `
-            -o $gradleZip $gradleUrl
-
-        if ($LASTEXITCODE -ne 0) {
-            throw "Gradle download failed."
-        }
-    }
-
-    if (!(Test-ZipFile $gradleZip)) {
-        Remove-Item -Force $gradleZip -ErrorAction SilentlyContinue
-        throw "Downloaded Gradle ZIP is damaged. Run BUILD_AND_INSTALL.ps1 again."
-    }
-
-    Write-Host "Extracting Gradle..."
-    Remove-Item -Recurse -Force $gradleDir -ErrorAction SilentlyContinue
-    Expand-Archive -Path $gradleZip -DestinationPath $gradleRoot -Force
+    if (!(Test-Zip $zip)) { throw "Downloaded Gradle ZIP is damaged." }
+    Expand-Archive -Path $zip -DestinationPath $local -Force
 }
 
-if (!(Test-Path $gradleBat)) {
-    throw "Gradle executable not found after extraction: $gradleBat"
-}
-
-Write-Host "== Building Lyceum TV 2.7.0.4 SILENCE MP3 UID 81 ONLY =="
-
-& $gradleBat clean assembleDebug
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Gradle build failed."
-}
+Write-Host "== Building LyceumTV 2.7.0.14 APPROVED TV PAGES =="
+& $gradleBat --no-daemon clean assembleDebug
+if ($LASTEXITCODE -ne 0) { throw "Gradle build failed." }
 
 $apk = Join-Path $project "app\build\outputs\apk\debug\app-debug.apk"
+if (!(Test-Path $apk)) { throw "APK not found: $apk" }
+Write-Host "BUILD SUCCESSFUL"
+Write-Host "APK: $apk"
 
-if (!(Test-Path $apk)) {
-    throw "APK not found: $apk"
+if ($BuildOnly) { exit 0 }
+
+function Connect-TV {
+    & $adb connect $Tv | Out-Host
+    Start-Sleep -Milliseconds 600
+    $line = & $adb devices | Select-String ("^" + [regex]::Escape($Tv) + "\s+device$")
+    if ($null -eq $line) { throw "TV $Tv not connected/authorized." }
 }
 
-if ($BuildOnly) {
-    Write-Host "BUILD ONLY succeeded. APK: $apk"
-    Write-Host "No files were installed on the TV."
-    exit 0
-}
-
-Write-Host "== Connecting to TV $Tv =="
-
-& $adb connect $Tv | Out-Host
-
-$deviceLine = & $adb devices |
-    Select-String ([regex]::Escape($Tv))
-
-if ($null -eq $deviceLine -or $deviceLine.ToString() -notmatch "\sdevice$") {
-    throw "TV $Tv is not connected/authorized."
-}
-
+Connect-TV
 if ($FreshInstall) {
-    Write-Warning "FreshInstall removes LyceumTV local settings, including the encrypted API token."
+    Write-Warning "Removing installed app and all local data."
     & $adb -s $Tv uninstall ua.edu.cunl.tv.debug | Out-Host
+    Connect-TV
 }
 
-Write-Host "== Installing APK =="
-
-& $adb -s $Tv install --no-streaming -r $apk | Out-Host
-
+$remote = "/data/local/tmp/lyceumtv_2709_pc_token.apk"
+for ($i=1; $i -le 3; $i++) {
+    & $adb -s $Tv push $apk $remote | Out-Host
+    if ($LASTEXITCODE -eq 0) { break }
+    if ($i -eq 3) { throw "ADB push failed." }
+    & $adb disconnect $Tv | Out-Null
+    Start-Sleep -Seconds 1
+    Connect-TV
+}
+Connect-TV
+& $adb -s $Tv shell pm install -r -t $remote | Out-Host
 if ($LASTEXITCODE -ne 0) {
-    throw "ADB install failed."
+    throw "pm install failed. Do not uninstall the old app if you need to preserve data/signing compatibility."
 }
-
-Write-Host "== Launching LyceumTV =="
-
+& $adb -s $Tv shell rm -f $remote | Out-Null
+& $adb -s $Tv shell dumpsys package ua.edu.cunl.tv.debug |
+    Select-String "versionCode=|versionName=" | Out-Host
 & $adb -s $Tv shell am force-stop ua.edu.cunl.tv.debug
-Start-Sleep -Milliseconds 600
-& $adb -s $Tv shell am start -n ua.edu.cunl.tv.debug/ua.edu.cunl.tv.MainActivity | Out-Host
-
-Write-Host ""
-Write-Host "DONE: Lyceum TV 2.7.0.4 SILENCE MP3 UID 81 ONLY installed and launched on $Tv"
-Write-Host "Open admin (hold OK) and enter the alerts.in.ua API token."
+& $adb -s $Tv shell am start -n "ua.edu.cunl.tv.debug/ua.edu.cunl.tv.MainActivity" | Out-Host

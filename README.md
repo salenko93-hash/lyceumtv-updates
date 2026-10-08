@@ -1,151 +1,127 @@
-# LyceumTV 2.7.0.4 — запис хвилини мовчання + оголошення під час перерв
+# LyceumTV 2.7.0.14 — Approved TV Pages
 
-Android TV signage for the Central Ukrainian Scientific Lyceum.
+Android TV signage for the **Центральноукраїнський науковий ліцей Кіровоградської обласної ради**.
 
-## Deployment constants
+## Version
+- versionCode: **54**
+- versionName: **2.7.0.14** (`2.7.0.14-debug` for the debug APK)
+- package for debug install: `ua.edu.cunl.tv.debug`
+- alerts.in.ua UID: **81**
+- default TV ADB: `192.168.5.77:5555`
 
-- **Only automatic alarm source:** alerts.in.ua, UID **81** (Kropyvnytskyi district / raion).
-- Default TV ADB address: `192.168.5.77:5555`.
-- App version: `versionCode=44`, `versionName=2.7.0.4`.
-- The API token remains protected by Android Keystore-backed AES/GCM.
-- Previous emergency controls remain: hold ↑ manual alarm, hold ↓ manual all-clear.
-- Active confirmed alarm always overrides ordinary display and uses the shelter schedule.
-- Network errors **never** imply all-clear. Official civil protection alerts remain authoritative.
+## Visual layout
+Version 2.7.0.14 implements the two approved 16:9 TV pages directly in Android Canvas:
 
-## Included features
+### Normal schedule
+- blue edge-to-center gradient matching the approved mockup;
+- white cropped lyceum logo on the central axis;
+- large `РОЗКЛАД УРОКІВ` title;
+- orange `ЧИСЕЛЬНИК / ЗНАМЕННИК` pill;
+- weekday, date and large clock;
+- four 10th-grade cards on the left and four 11th-grade cards on the right;
+- large lesson/break countdown card;
+- bottom Kropyvnytskyi weather panel with current conditions and the next four days.
 
-1. **Remote schedules:** validated, SHA-256 checked, four-file atomic bundle from either GitHub HTTPS manifest or a local HTTP(S) NAS manifest. Every set includes numerator, denominator and both shelter schedules. Refresh: ~15 minutes plus admin manual sync.
-2. **Offline protection:** packaged four-file schedules + last known downloaded bundle + previous downloaded bundle for rollback. A bad version can be rolled back and is blocked from automatic reinstall until the publisher increments the version.
-3. **Operational substitutions:** higher-priority `substitutions` entries from the selected source's `content.json` or Google Sheets JSON feed. `scope=normal|shelter|both`, date/day/week/class/lesson targeting, one or more group entries. A matched `entries:[]` cancels that class lesson.
-4. **Holiday calendar:** `calendar.json` in the manifest; public holidays and school breaks are maintained by the administrator, not guessed.
-5. **Alternating weeks:** reference numerator Monday configured in admin; every next Monday alternates.
-6. **After school:** after the day's last scheduled lesson (from the currently selected timetable, including shorter Saturdays) shows time, weather and cached rotating announcements. Air-raid mode remains higher priority.
-7. **Display profiles:** AUTO, FHD (1920x1080), HD (1280x720), OTHER (overscan-safe). All use aspect-preserving proportional scaling.
-8. **NTP check:** `time.google.com` via UDP/123 every 6h; warns if drift exceeds 30s. Never modifies system clock or changes alarm sources.
-9. **Startup/recovery:** existing BOOT_COMPLETED/MY_PACKAGE_REPLACED and foreground watchdog preserved, USER_UNLOCKED added. HyperOS/Android background launch rules may require enabling autostart and manual launch once after boot.
-10. **APK update:** automatic latest-release check about every six hours; administrator initiates downloading and approves system installation. Exact APK SHA-256, Android package name, versionCode and installed signing certificate are checked. No installation allowed during AIR_RAID or ALL_CLEAR. Android TV normally prohibits silent installations from an ordinary app.
+### Shelter / air-raid page
+- identical geometry so the screen does not jump when mode changes;
+- red emergency gradient;
+- `РОЗКЛАД В УКРИТТІ`;
+- the same class-card grid, but using the shelter schedule JSON;
+- large current time;
+- `ПОВІТРЯНА ТРИВОГА` + `НЕГАЙНО ПРОЙДІТЬ В УКРИТТЯ`;
+- lesson/break indicator; weather is intentionally hidden during an alert.
 
-## Quick install
+Typography uses Android's system Roboto / Roboto Medium family only. No external font files are required.
+The week containing **01.09.2026** is numerator. Every following Monday alternates numerator/denominator.
 
-Extract FULL ZIP, open PowerShell in the `LyceumTV-2.7.0.4-UID81-SILENCE-MP3` folder, first compile **without touching the live TV**:
+Approved reference images are included in:
+- `docs/mockups/normal_schedule_approved.png`
+- `docs/mockups/shelter_schedule_approved.png`
 
+## Structured lesson cards
+Each class card shows the active/next lesson as separate fields:
+- class and lesson number;
+- subject name;
+- room as a dedicated `КАБ.` badge;
+- teacher in a separate area;
+- explicit `гр.1`, `гр.2`, `група`, or `підгрупа` source markers are rendered as separate subgroup blocks.
+
+No class/subject/room/teacher data is invented. If the source workbook/JSON leaves a field empty, the UI shows an empty/dash value rather than guessing.
+
+## Weather and logo
+The original supplied `lyceum_logo.png` remains unchanged for the app icon.
+The TV/admin UI uses a separate cropped **white** `lyceum_logo_white.png`, preserving
+transparency and adding a subtle dark halo so the mark stays visible on blue/red backgrounds.
+
+The main screen fetches Kropyvnytskyi weather from Open-Meteo over HTTPS
+(no API key): current temperature, apparent temperature, WMO weather code, plus daily
+min/max temperatures and weather codes for five days. The TV page renders today and
+the next four-day forecast. Normal refresh interval is 10 minutes; connection failures
+retry after 2 minutes. Weather is hidden on the active shelter/air-raid page.
+
+## Break announcements
+When `ОГОЛОШЕННЯ НА ПЕРЕРВАХ` is enabled in admin:
+- first 30 seconds of each 45-second cycle show the schedule;
+- next 15 seconds show one active announcement;
+- the final 60 seconds before the next lesson always show the schedule;
+- active announcements rotate in source order;
+- `active=false` hides an announcement;
+- when there are no active announcements, the schedule remains on screen.
+
+Announcements are read from the last successfully synchronized `content.json`
+(remote cache first, packaged fallback second). Common fields `message`, `text`,
+`body`, `content`, and optional `title` are supported.
+
+## Build
 ```powershell
+python .\VERIFY_SOURCE_UID81.py
+.\CHECK_BUILD_ENV.ps1
 .\BUILD_AND_INSTALL.ps1 -BuildOnly
 ```
 
-After a successful build, install outside an active alert:
+Continue only after `BUILD SUCCESSFUL`.
 
+Install over the existing debug application:
 ```powershell
 .\BUILD_AND_INSTALL.ps1
 ```
 
-The deployment script already uses `192.168.5.77:5555`.
-Do **not** use `-FreshInstall` when upgrading an existing installation: it would delete the protected alerts.in.ua token.
+Do **not** use `-FreshInstall` if the existing API token and settings must be preserved.
 
-Verify:
-
+## API token from PC
+After installing the debug APK:
 ```powershell
-$adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
-& $adb -s "192.168.5.77:5555" shell dumpsys package ua.edu.cunl.tv.debug |
-  Select-String "versionName|versionCode"
+.\SET_ALERTS_TOKEN.ps1
 ```
 
-Expected `versionCode=44`, `versionName=2.7.0.4-debug`.
+The token is handed through the app-private sandbox, imported into the
+Android Keystore-backed secure store, and the plaintext hand-off file is deleted.
 
-## Admin and selected update source
+## Admin
+Hold OK for about one second, or use MENU/SETTINGS. Admin remains accessible
+during an active alert. The shelter screen remains red while the confirmed or
+manual alarm is active after the admin dialog is closed.
 
-Hold OK (or press MENU) on the TV remote.
+## 2.7.0.14 approved-page update
+- Rebuilt `SignageView` around the approved blue/red page pair.
+- Larger TV-readable schedule typography and fixed table columns.
+- Normal and shelter pages share the same geometry.
+- Added current weather + next four-day forecast to the normal page.
+- Removed the tiny diagnostic footer from NORMAL and AIR_RAID screens.
+- Preserved all real schedule data, UID 81 logic, alert audio and minute-of-silence audio.
 
-- Select `GITHUB + GOOGLE SHEETS` or `ЛОКАЛЬНИЙ СЕРВЕР / NAS`.
-- For GitHub/Sheets, configure `GitHub repository = owner/repository`, HTTPS URL to GitHub raw `content_manifest.json` for **schedules/calendar**, and the deployed Google Sheets Apps Script Web App URL for **announcements/substitutions**.
-- For LOCAL, configure the HTTP(S) URL of `content_manifest.json` on the same private LAN or a trusted HTTPS NAS. This manifest drives **schedules/calendar/content and APK**.
-- Configure reference Monday of numerator (e.g. `2026-08-31`) and screen profile.
-- Save, then select `СИНХРОНІЗУВАТИ ЗАРАЗ`.
+## 2.7.0.13 data/audio update
+The packaged normal and shelter schedules are regenerated from the latest supplied XLSX files:
+- `Розклад 10-11 Чисельник(6).xlsx`
+- `Розклад 10-11 Знаменник(5).xlsx`
+- `РОЗКЛАД  10–11 КЛАСІВ — ЧИСЕЛЬНИК УКРИТТЯ(4).xlsx`
+- `РОЗКЛАД 10–11 КЛАСІВ — ЗНАМЕННИК УКРИТТЯ(3).xlsx`
 
-The project does not contain live GitHub/Google/NAS account URLs: you provide them in admin.
-The **alerts.in.ua UID 81 remains fixed** and cannot be altered by remote content or the admin menu.
+The source workbooks contain lessons 1–8, with times 08:00–15:15. Excel continuation
+rows for groups are preserved; when a merged subject cell is blank on a continuation row,
+the subject is inherited from the preceding row of that same lesson.
 
-For full hosting examples, see `DEPLOY_REMOTE_UPDATES.md`.
-
-## Wire formats
-
-`sample-server/content_manifest.json`:
-
-```json
-{
-  "version": "2026-10-01-initial",
-  "schedules": {
-    "schedule_numerator.json": {"url": "schedule_numerator.json", "sha256": "<64 hex>"},
-    "schedule_denominator.json": {"url": "schedule_denominator.json", "sha256": "<64 hex>"},
-    "shelter_numerator.json": {"url": "shelter_numerator.json", "sha256": "<64 hex>"},
-    "shelter_denominator.json": {"url": "shelter_denominator.json", "sha256": "<64 hex>"}
-  },
-  "calendar": {"url": "calendar.json", "sha256": "<64 hex>"},
-  "content": {"url": "content.json", "sha256": "<64 hex>"},
-  "apk": {"url": "LyceumTV.apk", "sha256": "<64 hex>", "versionCode": 44}
-}
-```
-
-The included actual example manifest has real SHA-256 checksums and no APK placeholder.
-The `"apk"` field is only added after publishing a newer, validly signed APK.
-
-`calendar.json`: `daysOff:[{"date":"2026-10-14","label":"Канікули"}]`, `ranges:[{"from":"2026-12-28","to":"2027-01-10","label":"Зимові канікули"}]`. These are *illustrative*, not an assertion about the real school calendar; the shipped calendar is empty.
-
-`content.json` / Google Sheets output: `announcements`, `events`, `schedule` (legacy), `substitutions`. See `sample-server/content.json` for an initially disabled substitution. Substitute entries override a specific class/lesson without modifying the underlying timetable bundle.
-
-**Safety:** avoid publishing nonpublic shelter/classroom details in a public GitHub repository. Prefer an access-controlled trusted HTTPS server/NAS where appropriate. If hosting via LAN HTTP, only numeric private LAN IPv4 hosts are accepted; plain HTTP offers no confidentiality against LAN attackers. Use HTTPS for high-assurance deployments.
-
-## Build-fix revision
-
-The earlier 2.7.0.1 revision added SignageView.setScreenProfile(String)
-and setClockStatus(String) to resolve javac errors. Those fixes remain present
-in version 2.7.0.3. The alerts.in.ua UID is still 81..
-
-## 2.7.0.2 history: Minute-of-silence metronome (replaced in 2.7.0.4)
-
-- Quiet locally bundled metronome sample (not MP3, not streamed): **60 BPM**.
-- Automatically plays **only in the SILENCE display mode** (daily 09:00–09:01
-  Europe/Kyiv and the admin 60-second silence test).
-- Separate Settings -> Metronome switch (default ON) and volume (default 25%).
-  Volume 0 or switch OFF means the minute remains silent.
-- Alarm UID remains fixed to **81**. Confirmed API ACTIVE/PARTIAL or manual
-  ALARM stops a playing click immediately; the sound is also stopped when
-  the activity moves to background or when the 60-second period ends.
-- Audio uses the normal Android media stream and obeys the TV's media volume.
-  If another application produces alert MP3, that is independent of LyceumTV.
-- Same four normal/shelter schedules, Google Sheets announcements, GitHub +
-  local NAS updates, and TV ADB `192.168.5.77:5555`.
-
-
-## 2.7.0.3: оголошення під час перерв
-
-- Ті самі оголошення з Google Sheets. На *реальних перервах* 30 секунд
-  показується розклад, потім 15 секунд повноекранне активне оголошення.
-- Останні 60 секунд перед дзвінком завжди відведено під розклад.
-- Кілька активних оголошень автоматично змінюють одне одного; рядки
-  `active=FALSE` приховано. Події з вкладки Events на перервах не показуються.
-- В адмінці є окремий перемикач і кнопка тесту на 20 секунд.
-- Під час тривоги, відбою, хвилини мовчання, уроків, канікул і після уроків
-  зберігається відповідна попередня логіка. Тест скасовується при тривозі.
-- Версія `2.7.0.3`, versionCode `43`. Не використовуйте `-FreshInstall`.
-
-
-
-## 2.7.0.4 — Надана користувачем фонограма замість метронома
-
-- Оригінальний MP3 `03 хвилина мовчання.mp3` вбудовано без перекодування
-  як `app/src/main/res/raw/minute_silence.mp3`; тривалість ffprobe: 79.536 с.
-- О 09:00 за київським часом розпочинається відтворення запису один раз.
-  Екран залишається в режимі хвилини мовчання **до завершення фонограми**,
-  приблизно 09:01:19.536 (на екрані округлення до 09:01:20).
-  Система отримує фактичну тривалість із MediaPlayer під час запуску.
-- Тест з адмінки також триває повну довжину фонограми.
-- Наявні налаштування увімкнення й гучності від старого метронома
-  автоматично зберігаються, але тепер управляють саме MP3.
-- При підтвердженій/ручній тривозі або переході в інший Android-застосунок
-  аудіо негайно зупиняється. Відтворення не зациклюється.
-- UID 81, всі 4 комплекти розкладів, Google Sheets, оголошення на перервах
-  та безпекові обмеження віддалених оновлень залишено без змін.
-- `versionCode=44`, `versionName=2.7.0.4`. Збирати й оновлювати на Windows
-  без видалення вже встановленої debug-версії.
-- Для FULL/HOTFIX: `INSTALL_SILENCE_MP3_2_7_0_4.md`.
+`TRIVOGA.mp3` is packaged as `res/raw/trivoga.mp3` and is played once when the app
+enters an active air-raid state. It is not looped. The admin screen can enable/disable
+the sound and set its volume. The supplied `03 хвилина мовчання(3).mp3` is packaged
+as `res/raw/minute_silence.mp3`.

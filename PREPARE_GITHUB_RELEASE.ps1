@@ -4,8 +4,8 @@
     [string]$OutputDir = ".\github-release-assets"
 )
 $ErrorActionPreference = "Stop"
-if ($VersionCode -le 40) {
-    throw "The upgrade APK must have versionCode greater than 40."
+if ($VersionCode -le 53) {
+    throw "For installed LyceumTV 2.7.0.13, the upgrade APK must have versionCode greater than 53."
 }
 if (-not (Test-Path -LiteralPath $Apk)) {
     throw "APK not found: $Apk"
