@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-07-2.7.0.13-real-schedule-shelter-audio",
+  "version": "2026-10-08-sync-01",
   "schedules": {
     "schedule_numerator.json": {
       "url": "schedule_numerator.json",
