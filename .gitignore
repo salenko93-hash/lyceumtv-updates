@@ -1,0 +1,7 @@
+.gradle/
+.gradle-local/
+.idea/
+local.properties
+**/build/
+*.iml
+github-release-assets/

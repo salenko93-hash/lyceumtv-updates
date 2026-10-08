@@ -1,0 +1,29 @@
+{
+  "version": "2026-10-07-2.7.0.13-real-schedule-shelter-audio",
+  "schedules": {
+    "schedule_numerator.json": {
+      "url": "schedule_numerator.json",
+      "sha256": "ffd051ba7636109ffadeffbca6c1305d3c503b0c61f0b597ad9ba60076ab8c85"
+    },
+    "schedule_denominator.json": {
+      "url": "schedule_denominator.json",
+      "sha256": "4a22ade26cb371c20788df0baf10fcc27db468f3d62c9f0ff6d2b33e6b862a36"
+    },
+    "shelter_numerator.json": {
+      "url": "shelter_numerator.json",
+      "sha256": "fe13b072af45114931996581b98114e822c11960f4626041650d092d90b53597"
+    },
+    "shelter_denominator.json": {
+      "url": "shelter_denominator.json",
+      "sha256": "d140baedd5f2aa7c6f5d1298690c7b81949226d7d95848b3b8f01747a3573bf8"
+    }
+  },
+  "calendar": {
+    "url": "calendar.json",
+    "sha256": "44cf883ecfc0694e55ed97eae1a1fca0eb47c5d27276ccb504591f4debe1258a"
+  },
+  "content": {
+    "url": "content.json",
+    "sha256": "bd054d493c3645f72777b775193647127f42aac92bab23b67952b9ed0dd1d856"
+  }
+}

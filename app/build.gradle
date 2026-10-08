@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'ua.edu.cunl.tv'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'ua.edu.cunl.tv'
+        minSdk 26
+        targetSdk 34
+        versionCode 54
+        versionName '2.7.0.14'
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE*', 'META-INF/NOTICE*']
+        }
+    }
+}
+
+dependencies {
+    // Intentionally empty: the clean build uses Android platform APIs only.
+}

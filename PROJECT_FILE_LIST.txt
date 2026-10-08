@@ -1,0 +1,82 @@
+.gitignore
+ADMIN_ACCESS_FIX_2_7_0_7.md
+ANALYSIS_AND_FIXES.md
+APPROVED_TV_PAGES_2_7_0_14.md
+BUILD_AND_INSTALL.ps1
+CHECK_BUILD_ENV.ps1
+COLLECT_2_7_0_DIAGNOSTICS.ps1
+COLLECT_ALARM_DIAGNOSTICS.ps1
+CRASH_FIX_2_7_0_6.md
+DATA_IMPORT_REPORT.md
+DESIGN_WEATHER_TIMER_2_7_0_12.md
+PC_TOKEN_SETUP_2_7_0_9.md
+PREMIUM_BROADCAST_2_7_0_8.md
+PREPARE_GITHUB_RELEASE.ps1
+PROJECT_FILE_LIST.txt
+README.md
+REAL_SCHEDULE_SHELTER_AUDIO_2_7_0_13.md
+REFERENCE_STYLE_2_7_0_10.md
+REQUIRED_PRODUCTION_FILES.md
+SET_ALERTS_TOKEN.ps1
+STRUCTURED_SCHEDULE_WEATHER_2_7_0_11.md
+TEST_ALERTS_IN_UA_API.ps1
+VERIFY_SOURCE_UID81.py
+app/build.gradle
+app/src/main/AndroidManifest.xml
+app/src/main/assets/calendar.json
+app/src/main/assets/content.json
+app/src/main/assets/schedule_denominator.json
+app/src/main/assets/schedule_numerator.json
+app/src/main/assets/shelter_denominator.json
+app/src/main/assets/shelter_numerator.json
+app/src/main/java/ua/edu/cunl/tv/MainActivity.java
+app/src/main/java/ua/edu/cunl/tv/admin/AdminDialog.java
+app/src/main/java/ua/edu/cunl/tv/alerts/AlertsInUaConfig.java
+app/src/main/java/ua/edu/cunl/tv/alerts/AlertsInUaMonitor.java
+app/src/main/java/ua/edu/cunl/tv/alerts/AlertsInUaStore.java
+app/src/main/java/ua/edu/cunl/tv/audio/AlarmSoundPlayer.java
+app/src/main/java/ua/edu/cunl/tv/audio/MinuteSilencePlayer.java
+app/src/main/java/ua/edu/cunl/tv/content/AnnouncementRepository.java
+app/src/main/java/ua/edu/cunl/tv/remote/RemoteSyncManager.java
+app/src/main/java/ua/edu/cunl/tv/schedule/ScheduleRepository.java
+app/src/main/java/ua/edu/cunl/tv/schedule/ScheduleSnapshot.java
+app/src/main/java/ua/edu/cunl/tv/security/SecureTokenStore.java
+app/src/main/java/ua/edu/cunl/tv/startup/BootReceiver.java
+app/src/main/java/ua/edu/cunl/tv/ui/SignageView.java
+app/src/main/java/ua/edu/cunl/tv/util/KyivTime.java
+app/src/main/java/ua/edu/cunl/tv/weather/WeatherRepository.java
+app/src/main/res/drawable-nodpi/lyceum_logo.png
+app/src/main/res/drawable-nodpi/lyceum_logo_white.png
+app/src/main/res/raw/minute_silence.mp3
+app/src/main/res/raw/trivoga.mp3
+app/src/main/res/values/strings.xml
+app/src/main/res/values/styles.xml
+build.gradle
+docs/DEPLOY_REMOTE_UPDATES_original.md
+docs/INSTALL_SILENCE_MP3_2_7_0_4_original.md
+docs/SCHEDULE_XLSX_MAPPING_2_7_0_4.md
+docs/SETUP_UID81_original.md
+docs/SHEETS_SETUP_original.md
+docs/UID_81_CHANGELOG_original.md
+docs/history/ADMIN_ACCESS_FIX_2_7_0_7.md
+docs/history/CRASH_FIX_2_7_0_6.md
+docs/mockups/normal_schedule_approved.png
+docs/mockups/shelter_schedule_approved.png
+gradle.properties
+sample-server/calendar.json
+sample-server/content.json
+sample-server/content_manifest.json
+sample-server/schedule_denominator.json
+sample-server/schedule_numerator.json
+sample-server/shelter_denominator.json
+sample-server/shelter_numerator.json
+settings.gradle
+source-data/03 хвилина мовчання(3).mp3
+source-data/TRIVOGA.mp3
+source-data/РОЗКЛАД  10–11 КЛАСІВ — ЧИСЕЛЬНИК УКРИТТЯ(4).xlsx
+source-data/РОЗКЛАД 10–11 КЛАСІВ — ЗНАМЕННИК УКРИТТЯ(3).xlsx
+source-data/Розклад 10-11 Знаменник(5).xlsx
+source-data/Розклад 10-11 Чисельник(6).xlsx
+source-data/Розклад дзвінків(1).xlsx
+source-data/структура навчального року(1).xlsx
+tools/make_manifest.py
