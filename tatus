@@ -1,0 +1,86 @@
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'ADMIN_ACCESS_FIX_2_7_0_7.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'ANALYSIS_AND_FIXES.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'APPROVED_TV_PAGES_2_7_0_14.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'BUILD_AND_INSTALL.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CHECK_BUILD_ENV.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'COLLECT_2_7_0_DIAGNOSTICS.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'COLLECT_ALARM_DIAGNOSTICS.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CRASH_FIX_2_7_0_6.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'DATA_IMPORT_REPORT.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'DESIGN_WEATHER_TIMER_2_7_0_12.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'PC_TOKEN_SETUP_2_7_0_9.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'PREMIUM_BROADCAST_2_7_0_8.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'PREPARE_GITHUB_RELEASE.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'PROJECT_FILE_LIST.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REAL_SCHEDULE_SHELTER_AUDIO_2_7_0_13.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REFERENCE_STYLE_2_7_0_10.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REQUIRED_PRODUCTION_FILES.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'SET_ALERTS_TOKEN.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'SOURCE_HASHES.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'STRUCTURED_SCHEDULE_WEATHER_2_7_0_11.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'TEST_ALERTS_IN_UA_API.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'VERIFY_SOURCE_UID81.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/build.gradle', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/AndroidManifest.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/assets/calendar.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/assets/content.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/assets/schedule_denominator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/assets/schedule_numerator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/assets/shelter_denominator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/assets/shelter_numerator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/MainActivity.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/admin/AdminDialog.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/alerts/AlertsInUaConfig.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/alerts/AlertsInUaMonitor.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/alerts/AlertsInUaStore.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/audio/AlarmSoundPlayer.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/audio/MinuteSilencePlayer.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/content/AnnouncementRepository.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/remote/RemoteSyncManager.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/schedule/ScheduleRepository.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/schedule/ScheduleSnapshot.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/security/SecureTokenStore.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/startup/BootReceiver.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/ui/SignageView.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/util/KyivTime.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/java/ua/edu/cunl/tv/weather/WeatherRepository.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/res/values/strings.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/src/main/res/values/styles.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'build.gradle', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/DEPLOY_REMOTE_UPDATES_original.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/INSTALL_SILENCE_MP3_2_7_0_4_original.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/SCHEDULE_XLSX_MAPPING_2_7_0_4.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/SETUP_UID81_original.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/SHEETS_SETUP_original.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/UID_81_CHANGELOG_original.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/history/ADMIN_ACCESS_FIX_2_7_0_7.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/history/CRASH_FIX_2_7_0_6.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'gradle.properties', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'gradle/wrapper/gradle-wrapper.properties', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'gradlew', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'sample-server/calendar.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'sample-server/content.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'sample-server/content_manifest.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'sample-server/schedule_denominator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'sample-server/schedule_numerator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'sample-server/shelter_denominator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'sample-server/shelter_numerator.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'settings.gradle', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/make_manifest.py', LF will be replaced by CRLF the next time Git touches it
+ BUILD_AND_INSTALL.ps1                              |   2 [32m+[m[31m-[m
+ PROJECT_FILE_LIST.txt                              |  22 [32m+[m
+ README.md                                          | 266 [32m++++++[m[31m-----[m
+ REQUIRED_PRODUCTION_FILES.md                       |  11 [32m+[m[31m-[m
+ SOURCE_HASHES.json                                 |  47 [32m+[m[31m-[m
+ VERIFY_SOURCE_UID81.py                             |  12 [32m+[m[31m-[m
+ app/build.gradle                                   |   4 [32m+[m[31m-[m
+ app/src/main/AndroidManifest.xml                   |   4 [32m+[m[31m-[m
+ app/src/main/java/ua/edu/cunl/tv/MainActivity.java |  63 [32m++[m[31m-[m
+ .../java/ua/edu/cunl/tv/admin/AdminDialog.java     |  29 [32m+[m[31m-[m
+ .../main/java/ua/edu/cunl/tv/ui/SignageView.java   | 530 [32m+++++++++++++[m[31m--------[m
+ .../ua/edu/cunl/tv/weather/WeatherRepository.java  |   4 [32m+[m[31m-[m
+ app/src/main/res/values/strings.xml                |   2 [32m+[m[31m-[m
+ sample-server/content_manifest.json                |   2 [32m+[m[31m-[m
+ 14 files changed, 634 insertions(+), 364 deletions(-)

@@ -108,7 +108,7 @@ public final class MainActivity extends Activity
         }
 
         SharedPreferences prefs = prefs();
-        view.setScreenProfile(prefs.getString("screen_profile", "AUTO"));
+        view.setScreenProfile(prefs.getString(AdminDialog.KEY_SCREEN_PROFILE, "AUTO"));
         view.setClockStatus(KyivTime.displayName() + " • UID 81");
 
         schedules = new ScheduleRepository(this);
@@ -355,9 +355,8 @@ public final class MainActivity extends Activity
         if (silenceActive) {
             view.clearScheduleSnapshot();
             view.setBreakAnnouncement("", false);
-            view.setMode("SILENCE", missingAudio
-                    ? "Не вдалося відтворити minute_silence.mp3"
-                    : "Фонограма відтворюється один раз");
+            // The memorial page is intentionally clean: no playback/diagnostic captions.
+            view.setMode("SILENCE", "");
             return;
         }
 
@@ -479,7 +478,7 @@ public final class MainActivity extends Activity
     @Override
     public void onSettingsSaved() {
         SharedPreferences prefs = prefs();
-        view.setScreenProfile(prefs.getString("screen_profile", "AUTO"));
+        view.setScreenProfile(prefs.getString(AdminDialog.KEY_SCREEN_PROFILE, "AUTO"));
         monitor.pollNow();
         updateProductionDataFlag();
         render();
@@ -505,10 +504,10 @@ public final class MainActivity extends Activity
 
     @Override
     public void onSyncNow() {
-        String url = prefs().getString("manifest_url", "");
+        String url = prefs().getString(AdminDialog.KEY_MANIFEST_URL, AdminDialog.DEFAULT_MANIFEST_URL);
         // This is an explicit administrator action. It is allowed during AIR_RAID
         // in 2.7.0.8, while validation and atomic commit remain enforced.
-        new RemoteSyncManager(this).sync(url, prefs().getString("sheets_url", ""),
+        new RemoteSyncManager(this).sync(url, prefs().getString(AdminDialog.KEY_SHEETS_URL, AdminDialog.DEFAULT_SHEETS_URL),
                 this::isAlarmActive, true, (ok, msg) -> {
                     Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
                     updateProductionDataFlag();
@@ -543,13 +542,53 @@ public final class MainActivity extends Activity
 
     private void ensureDefaultPreferences() {
         SharedPreferences p = prefs();
-        if (!p.contains(AdminDialog.KEY_NUMERATOR_START_DATE)) {
+        SharedPreferences.Editor editor = p.edit();
+        boolean changed = false;
+
+        String start = p.getString(AdminDialog.KEY_NUMERATOR_START_DATE, "").trim();
+        if (start.isEmpty()) {
             String legacy = p.getString(AdminDialog.KEY_REFERENCE_MONDAY, "").trim();
-            String value = legacy.isEmpty()
-                    ? AdminDialog.DEFAULT_NUMERATOR_START_DATE
-                    : legacy;
-            p.edit().putString(AdminDialog.KEY_NUMERATOR_START_DATE, value).apply();
+            editor.putString(AdminDialog.KEY_NUMERATOR_START_DATE,
+                    legacy.isEmpty() ? AdminDialog.DEFAULT_NUMERATOR_START_DATE : legacy);
+            changed = true;
         }
+
+        // Defaults are written only when a field is empty/missing. Existing admin
+        // values survive APK upgrades because package id and preferences name stay unchanged.
+        if (p.getString(AdminDialog.KEY_MANIFEST_URL, "").trim().isEmpty()) {
+            editor.putString(AdminDialog.KEY_MANIFEST_URL, AdminDialog.DEFAULT_MANIFEST_URL);
+            changed = true;
+        }
+        if (p.getString(AdminDialog.KEY_SHEETS_URL, "").trim().isEmpty()) {
+            editor.putString(AdminDialog.KEY_SHEETS_URL, AdminDialog.DEFAULT_SHEETS_URL);
+            changed = true;
+        }
+        if (!p.contains(AdminDialog.KEY_SCREEN_PROFILE)) {
+            editor.putString(AdminDialog.KEY_SCREEN_PROFILE, "AUTO");
+            changed = true;
+        }
+        if (!p.contains(AdminDialog.KEY_BREAK_ANNOUNCEMENTS_ENABLED)) {
+            editor.putBoolean(AdminDialog.KEY_BREAK_ANNOUNCEMENTS_ENABLED, true);
+            changed = true;
+        }
+        if (!p.contains(AdminDialog.KEY_SILENCE_ENABLED)) {
+            editor.putBoolean(AdminDialog.KEY_SILENCE_ENABLED, true);
+            changed = true;
+        }
+        if (!p.contains(AdminDialog.KEY_SILENCE_VOLUME)) {
+            editor.putInt(AdminDialog.KEY_SILENCE_VOLUME, 25);
+            changed = true;
+        }
+        if (!p.contains(AdminDialog.KEY_ALARM_SOUND_ENABLED)) {
+            editor.putBoolean(AdminDialog.KEY_ALARM_SOUND_ENABLED, true);
+            changed = true;
+        }
+        if (!p.contains(AdminDialog.KEY_ALARM_VOLUME)) {
+            editor.putInt(AdminDialog.KEY_ALARM_VOLUME, 85);
+            changed = true;
+        }
+
+        if (changed) editor.apply();
     }
 
     private void updateProductionDataFlag() {

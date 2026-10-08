@@ -22,8 +22,8 @@ import java.util.concurrent.Executors;
  * Lightweight weather client for Kropyvnytskyi.
  *
  * Uses Open-Meteo over HTTPS without an API key. In addition to current
- * conditions, five daily forecast rows are requested so the TV screen can
- * render today + the next four days in the approved layout.
+ * conditions, daily forecast rows are retained in the data model for future use while the
+ * final TV pages render a compact current-conditions card.
  */
 public final class WeatherRepository {
     private static final String ENDPOINT =

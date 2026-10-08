@@ -10,8 +10,8 @@ android {
         applicationId 'ua.edu.cunl.tv'
         minSdk 26
         targetSdk 34
-        versionCode 54
-        versionName '2.7.0.14'
+        versionCode 56
+        versionName '2.7.0.16'
     }
 
     buildTypes {

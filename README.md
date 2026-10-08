@@ -1,127 +1,179 @@
-# LyceumTV 2.7.0.14 — Approved TV Pages
+# LyceumTV 2.7.0.16 — FINAL TV DESIGN
 
 Android TV signage for the **Центральноукраїнський науковий ліцей Кіровоградської обласної ради**.
 
 ## Version
-- versionCode: **54**
-- versionName: **2.7.0.14** (`2.7.0.14-debug` for the debug APK)
-- package for debug install: `ua.edu.cunl.tv.debug`
-- alerts.in.ua UID: **81**
-- default TV ADB: `192.168.5.77:5555`
+- versionCode: **56**
+- versionName: **2.7.0.16** (`2.7.0.16-debug` for the debug APK)
+- debug package: `ua.edu.cunl.tv.debug`
+- production namespace/applicationId: `ua.edu.cunl.tv`
+- alerts.in.ua region UID: **81**
+- default TV ADB target in the install script: `192.168.5.77:5555`
 
-## Visual layout
-Version 2.7.0.14 implements the two approved 16:9 TV pages directly in Android Canvas:
+## Final TV pages
 
-### Normal schedule
-- blue edge-to-center gradient matching the approved mockup;
-- white cropped lyceum logo on the central axis;
-- large `РОЗКЛАД УРОКІВ` title;
-- orange `ЧИСЕЛЬНИК / ЗНАМЕННИК` pill;
+### 1. Normal lesson
+- blue navy → royal blue → cyan center glow;
+- white lyceum logo;
+- `РОЗКЛАД УРОКІВ`;
+- orange `ЧИСЕЛЬНИК / ЗНАМЕННИК` badge;
 - weekday, date and large clock;
-- four 10th-grade cards on the left and four 11th-grade cards on the right;
-- large lesson/break countdown card;
-- bottom Kropyvnytskyi weather panel with current conditions and the next four days.
+- 4 cards for grades 10 on the left and 4 cards for grades 11 on the right;
+- one fixed subject text size across every card;
+- teacher names intentionally smaller than subjects;
+- dedicated room column and separate `ГР.1 / ГР.2` badges;
+- current lesson + live `ДО КІНЦЯ УРОКУ` countdown;
+- compact current weather for Kropyvnytskyi.
 
-### Shelter / air-raid page
-- identical geometry so the screen does not jump when mode changes;
-- red emergency gradient;
+### 2. Break
+The geometry does not jump when the lesson ends.
+- side cards automatically show the **next lesson**;
+- lesson label changes to the next lesson number;
+- center card changes to `ПЕРЕРВА`;
+- `ДО ПОЧАТКУ N УРОКУ`;
+- live break countdown;
+- Kropyvnytskyi weather remains visible;
+- optional announcement strip remains supported from `content.json`.
+
+### 3. Shelter / air raid
+The red page is the direct companion of the blue page and uses the same geometry.
+- red/crimson emergency gradient;
 - `РОЗКЛАД В УКРИТТІ`;
-- the same class-card grid, but using the shelter schedule JSON;
-- large current time;
-- `ПОВІТРЯНА ТРИВОГА` + `НЕГАЙНО ПРОЙДІТЬ В УКРИТТЯ`;
-- lesson/break indicator; weather is intentionally hidden during an alert.
+- shelter schedule JSON instead of the ordinary schedule;
+- `ПОВІТРЯНА ТРИВОГА`;
+- `НЕГАЙНО ПРОЙДІТЬ В УКРИТТЯ`;
+- current lesson number, or break state;
+- live lesson/break countdown;
+- current Kropyvnytskyi weather;
+- uniform subject typography and smaller teacher typography.
 
-Typography uses Android's system Roboto / Roboto Medium family only. No external font files are required.
-The week containing **01.09.2026** is numerator. Every following Monday alternates numerator/denominator.
+### 4. Minute of silence
+- dark navy memorial screen;
+- white lyceum logo;
+- `ХВИЛИНА МОВЧАННЯ`;
+- redesigned candle with warm glow, ivory wax and natural flame;
+- no `Фонограма відтворюється один раз` caption;
+- no technical/status line in the lower-left corner.
 
-Approved reference images are included in:
-- `docs/mockups/normal_schedule_approved.png`
-- `docs/mockups/shelter_schedule_approved.png`
+The normal/break/shelter TV screens also do **not** render the old diagnostic footer. Diagnostics remain available from the admin screen.
 
-## Structured lesson cards
-Each class card shows the active/next lesson as separate fields:
-- class and lesson number;
-- subject name;
-- room as a dedicated `КАБ.` badge;
-- teacher in a separate area;
-- explicit `гр.1`, `гр.2`, `група`, or `підгрупа` source markers are rendered as separate subgroup blocks.
+## Numerator / denominator
+The configured base date is:
 
-No class/subject/room/teacher data is invented. If the source workbook/JSON leaves a field empty, the UI shows an empty/dash value rather than guessing.
+`01.09.2026 = ЧИСЕЛЬНИК`
 
-## Weather and logo
-The original supplied `lyceum_logo.png` remains unchanged for the app icon.
-The TV/admin UI uses a separate cropped **white** `lyceum_logo_white.png`, preserving
-transparency and adding a subtle dark halo so the mark stays visible on blue/red backgrounds.
+The following weeks alternate automatically.
 
-The main screen fetches Kropyvnytskyi weather from Open-Meteo over HTTPS
-(no API key): current temperature, apparent temperature, WMO weather code, plus daily
-min/max temperatures and weather codes for five days. The TV page renders today and
-the next four-day forecast. Normal refresh interval is 10 minutes; connection failures
-retry after 2 minutes. Weather is hidden on the active shelter/air-raid page.
+## Admin settings are preserved on upgrade
+The project deliberately keeps:
+- the same package identity;
+- `AdminDialog.PREFS = "admin_settings_v1"`;
+- all existing preference keys;
+- the secure alerts.in.ua token store.
 
-## Break announcements
-When `ОГОЛОШЕННЯ НА ПЕРЕРВАХ` is enabled in admin:
-- first 30 seconds of each 45-second cycle show the schedule;
-- next 15 seconds show one active announcement;
-- the final 60 seconds before the next lesson always show the schedule;
-- active announcements rotate in source order;
-- `active=false` hides an announcement;
-- when there are no active announcements, the schedule remains on screen.
+`BUILD_AND_INSTALL.ps1` installs with `pm install -r -t`, so an in-place update keeps Android application data.
 
-Announcements are read from the last successfully synchronized `content.json`
-(remote cache first, packaged fallback second). Common fields `message`, `text`,
-`body`, `content`, and optional `title` are supported.
+**Do not use `-FreshInstall`** when you need the existing admin settings and secure token.
 
-## Build
+Defaults are written only when the corresponding field is missing or empty. Existing non-empty admin values are never overwritten.
+
+Embedded defaults:
+- Manifest URL:
+  `https://raw.githubusercontent.com/salenko93-hash/lyceumtv-updates/main/sample-server/content_manifest.json`
+- Google Apps Script Web App URL:
+  `https://script.google.com/macros/s/AKfycbwoo2SlQh3ojGRycG9EmUMhAqOgIhMlN9lCw6BzVDGlihVWAYonx1YTmUE8ap7EDKgSEA/exec`
+- numerator start date: `2026-09-01`
+
+## Real schedule data
+The four production schedule bundles are retained:
+- `schedule_numerator.json`
+- `schedule_denominator.json`
+- `shelter_numerator.json`
+- `shelter_denominator.json`
+
+They were generated from the supplied XLSX files and are included both in `app/src/main/assets/` and in `sample-server/`.
+
+The remote copy is protected by SHA-256 in `sample-server/content_manifest.json`. Remote updates are validated before the current bundle is replaced.
+
+## Audio
+- `TRIVOGA.mp3` → `app/src/main/res/raw/trivoga.mp3`
+- supplied minute-of-silence MP3 → `app/src/main/res/raw/minute_silence.mp3`
+
+Air-raid audio plays once when entering the active alarm state. The admin screen keeps enable/disable and volume controls for alarm and minute-of-silence audio.
+
+## Weather
+Current weather for **Kropyvnytskyi** is fetched over HTTPS through Open-Meteo without an API key. The compact weather panel is shown on:
+- normal lesson page;
+- break page;
+- shelter / air-raid page.
+
+Normal refresh interval is 10 minutes, with retry after a failed request.
+
+## Final 1920×1080 references
+Exact 1920×1080 reference images are included in `docs/mockups/`:
+- `normal_schedule_final_1920x1080.png`
+- `break_schedule_final_1920x1080.png`
+- `shelter_schedule_final_1920x1080.png`
+- `minute_silence_final_reference_1920x1080.png`
+
+These PNG files are design references. The actual TV UI is rendered natively by `SignageView`.
+
+## Build and verify on Windows
+First run:
+
 ```powershell
+python .\VERIFY_FINAL_2_7_0_16.py
 python .\VERIFY_SOURCE_UID81.py
 .\CHECK_BUILD_ENV.ps1
+```
+
+Build only:
+
+```powershell
 .\BUILD_AND_INSTALL.ps1 -BuildOnly
 ```
 
-Continue only after `BUILD SUCCESSFUL`.
+The script downloads its own local Gradle 8.2 distribution into `.gradle-local` if required.
 
-Install over the existing debug application:
+APK output:
+
+```text
+app\build\outputs\apk\debug\app-debug.apk
+```
+
+Install/update on the existing TV app:
+
 ```powershell
 .\BUILD_AND_INSTALL.ps1
 ```
 
-Do **not** use `-FreshInstall` if the existing API token and settings must be preserved.
+This uses an in-place install so admin settings are retained.
 
-## API token from PC
-After installing the debug APK:
-```powershell
-.\SET_ALERTS_TOKEN.ps1
+## GitHub / Google Apps Script sync
+Default manifest:
+
+```text
+https://raw.githubusercontent.com/salenko93-hash/lyceumtv-updates/main/sample-server/content_manifest.json
 ```
 
-The token is handed through the app-private sandbox, imported into the
-Android Keystore-backed secure store, and the plaintext hand-off file is deleted.
+Default Apps Script Web App:
 
-## Admin
-Hold OK for about one second, or use MENU/SETTINGS. Admin remains accessible
-during an active alert. The shelter screen remains red while the confirmed or
-manual alarm is active after the admin dialog is closed.
+```text
+https://script.google.com/macros/s/AKfycbwoo2SlQh3ojGRycG9EmUMhAqOgIhMlN9lCw6BzVDGlihVWAYonx1YTmUE8ap7EDKgSEA/exec
+```
 
-## 2.7.0.14 approved-page update
-- Rebuilt `SignageView` around the approved blue/red page pair.
-- Larger TV-readable schedule typography and fixed table columns.
-- Normal and shelter pages share the same geometry.
-- Added current weather + next four-day forecast to the normal page.
-- Removed the tiny diagnostic footer from NORMAL and AIR_RAID screens.
-- Preserved all real schedule data, UID 81 logic, alert audio and minute-of-silence audio.
+Both URLs are already populated in the admin UI when the corresponding saved field is empty.
 
-## 2.7.0.13 data/audio update
-The packaged normal and shelter schedules are regenerated from the latest supplied XLSX files:
-- `Розклад 10-11 Чисельник(6).xlsx`
-- `Розклад 10-11 Знаменник(5).xlsx`
-- `РОЗКЛАД  10–11 КЛАСІВ — ЧИСЕЛЬНИК УКРИТТЯ(4).xlsx`
-- `РОЗКЛАД 10–11 КЛАСІВ — ЗНАМЕННИК УКРИТТЯ(3).xlsx`
+## Source files retained
+The supplied XLSX and MP3 source files are preserved under `source-data/`.
 
-The source workbooks contain lessons 1–8, with times 08:00–15:15. Excel continuation
-rows for groups are preserved; when a merged subject cell is blank on a continuation row,
-the subject is inherited from the preceding row of that same lesson.
+For the final design summary, see `FINAL_TV_DESIGN_2_7_0_15.md`.
 
-`TRIVOGA.mp3` is packaged as `res/raw/trivoga.mp3` and is played once when the app
-enters an active air-raid state. It is not looped. The admin screen can enable/disable
-the sound and set its volume. The supplied `03 хвилина мовчання(3).mp3` is packaged
-as `res/raw/minute_silence.mp3`.
+
+## Android TV launcher branding (2.7.0.16)
+
+The project now includes a dedicated LyceumTV launcher icon and a 320×180
+Android TV banner. `AndroidManifest.xml` references both assets, while the
+package/application ID and admin SharedPreferences names remain unchanged.
+This allows an in-place update without intentionally resetting the admin
+configuration.

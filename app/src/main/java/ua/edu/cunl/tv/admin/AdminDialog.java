@@ -51,6 +51,14 @@ public final class AdminDialog {
     public static final String KEY_SILENCE_VOLUME = "minute_silence_volume_percent";
     public static final String KEY_ALARM_SOUND_ENABLED = "alarm_sound_enabled";
     public static final String KEY_ALARM_VOLUME = "alarm_sound_volume_percent";
+    public static final String KEY_MANIFEST_URL = "manifest_url";
+    public static final String KEY_SHEETS_URL = "sheets_url";
+    public static final String KEY_SCREEN_PROFILE = "screen_profile";
+
+    public static final String DEFAULT_MANIFEST_URL =
+            "https://raw.githubusercontent.com/salenko93-hash/lyceumtv-updates/main/sample-server/content_manifest.json";
+    public static final String DEFAULT_SHEETS_URL =
+            "https://script.google.com/macros/s/AKfycbwoo2SlQh3ojGRycG9EmUMhAqOgIhMlN9lCw6BzVDGlihVWAYonx1YTmUE8ap7EDKgSEA/exec";
 
     private static final int BG = Color.rgb(13, 18, 27);
     private static final int CARD = Color.rgb(23, 31, 44);
@@ -194,11 +202,11 @@ public final class AdminDialog {
         addSection(root, "СИНХРОНІЗАЦІЯ ТА ДЖЕРЕЛА", small);
 
         EditText manifest = input(context, "Manifest URL (GitHub/NAS)");
-        manifest.setText(prefs.getString("manifest_url", ""));
+        manifest.setText(nonBlank(prefs.getString(KEY_MANIFEST_URL, ""), DEFAULT_MANIFEST_URL));
         root.addView(manifest, matchWrap());
 
         EditText sheets = input(context, "Google Apps Script Web App URL");
-        sheets.setText(prefs.getString("sheets_url", ""));
+        sheets.setText(nonBlank(prefs.getString(KEY_SHEETS_URL, ""), DEFAULT_SHEETS_URL));
         root.addView(sheets, matchWrap());
 
         TextView syncInfo = info(context,
@@ -223,8 +231,8 @@ public final class AdminDialog {
         root.addView(weather, matchWrap());
 
         TextView weatherInfo = info(context,
-                "Погода Кропивницького автоматично показується на головному екрані "
-                        + "та оновлюється у фоні. Кнопка відкриває детальний прогноз у браузері.");
+                "Погода Кропивницького автоматично показується на звичайному екрані, "
+                        + "під час перерви та в режимі укриття; оновлення виконується у фоні.");
         root.addView(weatherInfo, matchWrap());
 
         addSection(root, "ЕКРАН", small);
@@ -235,7 +243,7 @@ public final class AdminDialog {
                 context, android.R.layout.simple_spinner_item, profiles);
         profileAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         profile.setAdapter(profileAdapter);
-        String current = prefs.getString("screen_profile", "AUTO");
+        String current = prefs.getString(KEY_SCREEN_PROFILE, "AUTO");
         for (int i = 0; i < profiles.length; i++) {
             if (profiles[i].equals(current)) profile.setSelection(i);
         }
@@ -329,9 +337,9 @@ public final class AdminDialog {
 
                     prefs.edit()
                             .putString(KEY_NUMERATOR_START_DATE, start)
-                            .putString("manifest_url", manifest.getText().toString().trim())
-                            .putString("sheets_url", sheets.getText().toString().trim())
-                            .putString("screen_profile", profile.getSelectedItem().toString())
+                            .putString(KEY_MANIFEST_URL, manifest.getText().toString().trim())
+                            .putString(KEY_SHEETS_URL, sheets.getText().toString().trim())
+                            .putString(KEY_SCREEN_PROFILE, profile.getSelectedItem().toString())
                             .putBoolean(KEY_BREAK_ANNOUNCEMENTS_ENABLED,
                                     breakAnnouncements.isChecked())
                             .putBoolean(KEY_SILENCE_ENABLED, silenceEnabled.isChecked())
@@ -455,6 +463,11 @@ public final class AdminDialog {
         int g = Math.min(255, Color.green(color) + 36);
         int b = Math.min(255, Color.blue(color) + 36);
         return Color.rgb(r, g, b);
+    }
+
+    private static String nonBlank(String value, String fallback) {
+        String v = value == null ? "" : value.trim();
+        return v.isEmpty() ? fallback : v;
     }
 
     private static String safe(String value) {

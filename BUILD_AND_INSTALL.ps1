@@ -82,7 +82,7 @@ if (!(Test-Path $gradleBat)) {
     Expand-Archive -Path $zip -DestinationPath $local -Force
 }
 
-Write-Host "== Building LyceumTV 2.7.0.14 APPROVED TV PAGES =="
+Write-Host "== Building LyceumTV 2.7.0.16 TV ICON + BANNER =="
 & $gradleBat --no-daemon clean assembleDebug
 if ($LASTEXITCODE -ne 0) { throw "Gradle build failed." }
 

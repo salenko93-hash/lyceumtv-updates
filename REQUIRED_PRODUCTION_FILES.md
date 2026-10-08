@@ -1,4 +1,4 @@
-# Required production files — 2.7.0.14
+# Required production files — 2.7.0.15
 
 All production-critical files are included in this package:
 
@@ -20,3 +20,12 @@ Approved design references:
 
 - `docs/mockups/normal_schedule_approved.png`
 - `docs/mockups/shelter_schedule_approved.png`
+
+
+## Final TV reference mockups
+- `docs/mockups/normal_schedule_final_1920x1080.png`
+- `docs/mockups/break_schedule_final_1920x1080.png`
+- `docs/mockups/shelter_schedule_final_1920x1080.png`
+- `docs/mockups/minute_silence_final_reference_1920x1080.png`
+
+These are design references/documentation; runtime rendering is drawn natively by `SignageView`.

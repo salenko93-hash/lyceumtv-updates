@@ -57,8 +57,8 @@ assert "entry.subgroup" in view
 assert "drawEntryRow" in view
 assert "ПОГОДА • КРОПИВНИЦЬКИЙ" in admin
 assert "weather+Kropyvnytskyi" in admin
-assert "Кропивницький" in view and "drawWeatherPanel" in view
-assert "ДО КІНЦЯ УРОКУ" in view and "ДО КІНЦЯ ПЕРЕРВИ" in view
+assert "КРОПИВНИЦЬКИЙ" in view and "drawWeatherPanel" in view
+assert "ДО КІНЦЯ УРОКУ" in view and "ДО ПОЧАТКУ " in view
 assert "secondsToLessonEnd" in view and "secondsToLessonEnd" in repo
 assert "api.open-meteo.com" in weather and "current=temperature_2m" in weather
 assert "daily=weather_code,temperature_2m_max,temperature_2m_min" in weather
@@ -112,7 +112,7 @@ assert "snapshot.breakTime" in main
 assert "snapshot.secondsToNextLesson > 60L" in main
 assert "(snapshot.secondsIntoBreak % 45L) >= 30L" in main
 assert "view.setBreakAnnouncement" in main
-assert "versionCode 54" in gradle and "versionName '2.7.0.14'" in gradle
+assert "versionCode 55" in gradle and "versionName '2.7.0.15'" in gradle
 assert "importPendingTokenFromPc" in main
 assert "PENDING_TOKEN_FILE" in main
 assert "SecureTokenStore(this).save(token)" in main
@@ -182,11 +182,11 @@ assert '"trivoga"' in alarm_player and "setLooping(false)" in alarm_player
 assert "startAlarmAudioIfNeeded" in main and "KEY_ALARM_SOUND_ENABLED" in admin
 assert "KEY_ALARM_VOLUME" in admin and "alarmPlayer.stop()" in main
 
-print("PASS: UID 81, cache invalidation, v54/2.7.0.14, manifest and Kyiv fallback.")
+print("PASS: UID 81, cache invalidation, v55/2.7.0.15, manifest and Kyiv fallback.")
 print("PASS: approved TV layout, red AIR_RAID and green ALL_CLEAR.")
 print("PASS: admin remains available during AIR_RAID; explicit admin sync is allowed.")
 print("PASS: numerator starts 01.09.2026 and alternates by school week.")
 print("PASS: readable class/subject/room/teacher grid with subgroup markers.")
-print("PASS: Kropyvnytskyi current weather + 4-day forecast, original logo and white TV logo.")
-print("PASS: lesson/break countdown and 30s schedule / 15s announcement / final 60s schedule.")
+print("PASS: Kropyvnytskyi weather feed, compact TV weather card, original logo and white TV logo.")
+print("PASS: lesson countdown, dedicated break countdown and announcement cycle.")
 print("PASS: 4 latest real schedules, 8 classes, 8 bell periods, 79.536 s silence and 50.208 s TRIVOGA audio.")

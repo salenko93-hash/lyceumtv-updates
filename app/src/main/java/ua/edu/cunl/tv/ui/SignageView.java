@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
+import android.graphics.Path;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
@@ -26,7 +27,7 @@ import ua.edu.cunl.tv.util.KyivTime;
 import ua.edu.cunl.tv.weather.WeatherRepository;
 
 /**
- * TV-first renderer for the approved LyceumTV schedule pages.
+ * TV-first renderer for the final LyceumTV 2.7.0.16 schedule pages.
  *
  * The screen is intentionally drawn with Android platform Canvas APIs only:
  * no WebView, no external fonts and no third-party UI dependencies. The
@@ -110,7 +111,7 @@ public final class SignageView extends View {
     }
 
     /**
-     * Preferred weather setter for 2.7.0.14: current conditions + daily forecast.
+     * Weather setter for 2.7.0.16. Current conditions are rendered in the compact TV card.
      */
     public void setWeather(WeatherRepository.Weather data) {
         if (data == null) {
@@ -186,16 +187,19 @@ public final class SignageView extends View {
             drawFallback(canvas, w, h, pad);
         }
 
-        // The approved NORMAL/AIR_RAID pages intentionally have no debug footer.
-        if (!"NORMAL".equals(mode) && !"AIR_RAID".equals(mode)) {
-            drawFooter(canvas, w, h, pad);
-        }
+        // TV pages stay presentation-clean. Diagnostics remain available in the admin dialog.
     }
 
     private void drawBackground(Canvas canvas, float w, float h) {
         if ("SILENCE".equals(mode)) {
             paint.setShader(new LinearGradient(0f, 0f, 0f, h,
-                    Color.rgb(35, 37, 43), Color.rgb(8, 9, 12), Shader.TileMode.CLAMP));
+                    Color.rgb(25, 52, 98), Color.rgb(6, 16, 39), Shader.TileMode.CLAMP));
+            canvas.drawRect(0f, 0f, w, h, paint);
+            paint.setShader(null);
+            paint.setShader(new RadialGradient(
+                    w * 0.50f, h * 0.53f, Math.max(w, h) * 0.43f,
+                    Color.argb(28, 106, 155, 226), Color.TRANSPARENT,
+                    Shader.TileMode.CLAMP));
             canvas.drawRect(0f, 0f, w, h, paint);
             paint.setShader(null);
             return;
@@ -246,19 +250,19 @@ public final class SignageView extends View {
     private void drawApprovedSchedule(Canvas canvas, float w, float h, float pad, boolean raid) {
         ZonedDateTime now = KyivTime.now();
 
-        // Side columns are intentionally wide. The center remains fixed so
-        // normal and shelter pages switch without visual jumping.
+        // Final 16:9 composition: two stable schedule columns and one center information axis.
+        // Geometry does not move when NORMAL/BREAK/AIR_RAID states switch.
         float sideW = w * 0.292f;
         float leftX = pad;
         float rightX = w - pad - sideW;
 
-        drawSideCards(canvas, leftX, sideW, rightX, sideW, h);
+        drawSideCards(canvas, leftX, sideW, rightX, sideW, h, raid);
         drawCenterHeader(canvas, w, h, now, raid);
 
         if (raid) {
             drawRaidCenter(canvas, w, h, now);
-        } else if (showAnnouncement && schedule.breakTime) {
-            drawAnnouncementCenter(canvas, w, h);
+        } else if (schedule.breakTime) {
+            drawBreakCenter(canvas, w, h, now);
         } else {
             drawNormalCenter(canvas, w, h, now);
         }
@@ -266,26 +270,25 @@ public final class SignageView extends View {
 
     private void drawCenterHeader(Canvas canvas, float w, float h,
                                   ZonedDateTime now, boolean raid) {
-        // White logo.
-        float logoTop = h * 0.026f;
+        float logoTop = h * 0.025f;
         float logoH = h * 0.145f;
         if (logo != null && logo.getWidth() > 0 && logo.getHeight() > 0) {
             float logoW = logoH * ((float) logo.getWidth() / (float) logo.getHeight());
             RectF dest = new RectF(w * 0.50f - logoW / 2f, logoTop,
                     w * 0.50f + logoW / 2f, logoTop + logoH);
-            paint.setColor(Color.argb(34, 0, 0, 0));
-            canvas.drawOval(new RectF(dest.left - 10f, dest.top + 8f,
-                    dest.right + 10f, dest.bottom + 15f), paint);
+            paint.setColor(Color.argb(30, 0, 0, 0));
+            canvas.drawOval(new RectF(dest.left - 9f, dest.top + 7f,
+                    dest.right + 9f, dest.bottom + 13f), paint);
             paint.setAlpha(255);
             canvas.drawBitmap(logo, null, dest, paint);
         }
 
         setText(bold, Color.WHITE, h * 0.049f);
         drawCentered(canvas, raid ? "РОЗКЛАД В УКРИТТІ" : "РОЗКЛАД УРОКІВ",
-                w * 0.50f, h * 0.245f);
+                w * 0.50f, h * 0.247f);
 
         String week = weekLabel(schedule.subtitle);
-        RectF pill = new RectF(w * 0.389f, h * 0.267f, w * 0.611f, h * 0.331f);
+        RectF pill = new RectF(w * 0.389f, h * 0.270f, w * 0.611f, h * 0.336f);
         paint.setColor(ORANGE);
         canvas.drawRoundRect(pill, h * 0.018f, h * 0.018f, paint);
 
@@ -297,18 +300,18 @@ public final class SignageView extends View {
         String date = now.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
 
         setText(condensedBold, Color.WHITE, h * 0.043f);
-        drawCentered(canvas, day, w * 0.50f, h * 0.402f);
+        drawCentered(canvas, day, w * 0.50f, h * 0.407f);
 
-        setText(condensed, Color.argb(242, 255, 255, 255), h * 0.026f);
-        drawCentered(canvas, date, w * 0.50f, h * 0.445f);
+        setText(condensed, Color.argb(244, 255, 255, 255), h * 0.026f);
+        drawCentered(canvas, date, w * 0.50f, h * 0.449f);
     }
 
     private void drawSideCards(Canvas canvas, float leftX, float leftW,
-                               float rightX, float rightW, float h) {
+                               float rightX, float rightW, float h, boolean raid) {
         int total = Math.min(8, schedule.rows.size());
-        float top = h * 0.118f;
-        float bottom = h * 0.775f;
-        float gap = h * 0.026f;
+        float top = h * 0.116f;
+        float bottom = h * 0.922f;
+        float gap = h * 0.020f;
         float cardH = (bottom - top - gap * 3f) / 4f;
 
         for (int i = 0; i < total; i++) {
@@ -318,53 +321,88 @@ public final class SignageView extends View {
             float cardW = right ? rightW : leftW;
             float y = top + rowIndex * (cardH + gap);
             RectF card = new RectF(x, y, x + cardW, y + cardH);
-            drawScheduleCard(canvas, card, schedule.rows.get(i));
+            drawScheduleCard(canvas, card, schedule.rows.get(i), raid);
         }
     }
 
-    private void drawScheduleCard(Canvas canvas, RectF card, ScheduleSnapshot.Row row) {
-        float radius = card.height() * 0.10f;
+    private void drawScheduleCard(Canvas canvas, RectF card, ScheduleSnapshot.Row row, boolean raid) {
+        float radius = card.height() * 0.085f;
+
+        // Very light shadow keeps cards separated from both blue and red backgrounds.
+        paint.setColor(Color.argb(28, 0, 35, 75));
+        canvas.drawRoundRect(new RectF(card.left + 3f, card.top + 5f,
+                card.right + 3f, card.bottom + 5f), radius, radius, paint);
+
         paint.setColor(IVORY);
         canvas.drawRoundRect(card, radius, radius, paint);
 
-        float classW = card.width() * 0.205f;
+        int accent = raid ? Color.rgb(214, 28, 43) : Color.rgb(48, 111, 179);
+        int headerBg = raid ? Color.rgb(255, 241, 242) : Color.rgb(239, 247, 252);
+
+        float classW = card.width() * 0.215f;
         RectF classCell = new RectF(card.left, card.top, card.left + classW, card.bottom);
 
         stroke.setStyle(Paint.Style.STROKE);
-        stroke.setStrokeWidth(Math.max(1f, card.height() * 0.007f));
+        stroke.setStrokeWidth(Math.max(1f, card.height() * 0.005f));
         stroke.setColor(GRID);
         canvas.drawLine(classCell.right, card.top, classCell.right, card.bottom, stroke);
 
-        setText(bold, NAVY, card.height() * 0.255f);
+        setText(bold, NAVY, card.height() * 0.205f);
         drawCentered(canvas, row.className, classCell.centerX(),
-                classCell.centerY() - card.height() * 0.055f);
+                classCell.centerY() - card.height() * 0.035f);
 
-        setText(medium, NAVY_MUTED, card.height() * 0.095f);
+        setText(medium, accent, card.height() * 0.084f);
         String lessonLabel = schedule.lesson > 0 ? schedule.lesson + " УРОК" : "УРОК";
         drawCentered(canvas, lessonLabel, classCell.centerX(),
-                classCell.centerY() + card.height() * 0.205f);
+                classCell.centerY() + card.height() * 0.190f);
+
+        RectF table = new RectF(classCell.right, card.top, card.right, card.bottom);
+        float headerH = card.height() * 0.225f;
+        RectF header = new RectF(table.left, table.top, table.right, table.top + headerH);
+        paint.setColor(headerBg);
+        canvas.drawRect(header, paint);
+
+        float subjectW = table.width() * 0.515f;
+        float roomW = table.width() * 0.175f;
+        float subjectRight = table.left + subjectW;
+        float roomRight = subjectRight + roomW;
+
+        canvas.drawLine(subjectRight, card.top, subjectRight, card.bottom, stroke);
+        canvas.drawLine(roomRight, card.top, roomRight, card.bottom, stroke);
+        canvas.drawLine(table.left, header.bottom, table.right, header.bottom, stroke);
+
+        setText(medium, accent, card.height() * 0.063f);
+        drawCentered(canvas, "ПРЕДМЕТ", (table.left + subjectRight) / 2f,
+                header.centerY() - (paint.ascent() + paint.descent()) / 2f);
+        drawCentered(canvas, "КАБ.", (subjectRight + roomRight) / 2f,
+                header.centerY() - (paint.ascent() + paint.descent()) / 2f);
+        drawCentered(canvas, "ВИКЛАДАЧ", (roomRight + table.right) / 2f,
+                header.centerY() - (paint.ascent() + paint.descent()) / 2f);
 
         if (row.entries.isEmpty()) {
-            setText(medium, NAVY, card.height() * 0.27f);
-            drawCentered(canvas, "—", (classCell.right + card.right) / 2f,
-                    card.centerY() - (paint.ascent() + paint.descent()) / 2f);
+            setText(medium, NAVY, card.height() * 0.18f);
+            drawCentered(canvas, "—", (table.left + table.right) / 2f,
+                    header.bottom + (card.bottom - header.bottom) * 0.58f);
             return;
         }
 
         int count = Math.min(2, row.entries.size());
-        float rowH = card.height() / count;
+        float dataTop = header.bottom;
+        float dataH = card.bottom - dataTop;
+        float rowH = dataH / count;
         if (count == 2) {
-            canvas.drawLine(classCell.right, card.centerY(), card.right, card.centerY(), stroke);
+            canvas.drawLine(table.left, dataTop + rowH, table.right, dataTop + rowH, stroke);
         }
 
         for (int i = 0; i < count; i++) {
-            RectF entryBox = new RectF(classCell.right, card.top + i * rowH,
-                    card.right, card.top + (i + 1) * rowH);
-            drawEntryRow(canvas, entryBox, row.entries.get(i), count == 2);
+            RectF entryBox = new RectF(table.left, dataTop + i * rowH,
+                    table.right, dataTop + (i + 1) * rowH);
+            drawEntryRow(canvas, entryBox, row.entries.get(i), subjectRight, roomRight,
+                    card.height(), raid);
         }
 
         if (row.entries.size() > 2) {
-            setText(medium, NAVY_MUTED, Math.max(11f, card.height() * 0.075f));
+            setText(medium, accent, Math.max(10f, card.height() * 0.055f));
             String extra = "+" + (row.entries.size() - 2);
             canvas.drawText(extra, card.right - paint.measureText(extra) - 7f,
                     card.bottom - 5f, paint);
@@ -372,188 +410,191 @@ public final class SignageView extends View {
     }
 
     private void drawEntryRow(Canvas canvas, RectF box, ScheduleSnapshot.Entry entry,
-                              boolean compact) {
-        float subjectW = box.width() * 0.46f;
-        float roomW = box.width() * 0.18f;
-
-        RectF subject = new RectF(box.left, box.top, box.left + subjectW, box.bottom);
-        RectF room = new RectF(subject.right, box.top, subject.right + roomW, box.bottom);
-        RectF teacher = new RectF(room.right, box.top, box.right, box.bottom);
-
-        stroke.setStyle(Paint.Style.STROKE);
-        stroke.setStrokeWidth(Math.max(1f, box.height() * 0.009f));
-        stroke.setColor(GRID);
-        canvas.drawLine(subject.right, box.top, subject.right, box.bottom, stroke);
-        canvas.drawLine(room.right, box.top, room.right, box.bottom, stroke);
+                              float subjectRight, float roomRight, float cardHeight,
+                              boolean raid) {
+        RectF subject = new RectF(box.left, box.top, subjectRight, box.bottom);
+        RectF room = new RectF(subjectRight, box.top, roomRight, box.bottom);
+        RectF teacher = new RectF(roomRight, box.top, box.right, box.bottom);
 
         String subjectText = entry.subject == null || entry.subject.trim().isEmpty()
                 ? "—" : entry.subject.trim();
-
-        if (entry.subgroup != null && !entry.subgroup.trim().isEmpty()) {
-            setText(medium, Color.rgb(45, 105, 160), Math.max(10f, box.height() * 0.125f));
-            canvas.drawText(entry.subgroup.trim(), subject.left + box.width() * 0.025f,
-                    subject.top + box.height() * 0.21f, paint);
-            RectF shifted = new RectF(subject.left + 4f, subject.top + box.height() * 0.15f,
-                    subject.right - 4f, subject.bottom - 1f);
-            setText(bold, NAVY, Math.max(14f, box.height() * (compact ? 0.245f : 0.215f)));
-            drawCenteredMultiline(canvas, subjectText, shifted, 2);
-        } else {
-            setText(bold, NAVY, Math.max(14f, box.height() * (compact ? 0.255f : 0.225f)));
-            drawCenteredMultiline(canvas, subjectText,
-                    inset(subject, box.width() * 0.025f, box.height() * 0.08f), 2);
-        }
-
-        setText(medium, NAVY, Math.max(10f, box.height() * 0.14f));
-        drawCentered(canvas, "КАБ.", room.centerX(), room.top + box.height() * 0.34f);
-
-        setText(bold, NAVY, Math.max(16f, box.height() * 0.255f));
-        String roomText = entry.room == null || entry.room.trim().isEmpty() ? "—" : entry.room.trim();
-        drawCentered(canvas, roomText, room.centerX(), room.top + box.height() * 0.72f);
-
-        setText(medium, NAVY, Math.max(13f, box.height() * (compact ? 0.205f : 0.185f)));
+        String roomText = entry.room == null || entry.room.trim().isEmpty()
+                ? "—" : entry.room.trim();
         String teacherText = entry.teacher == null || entry.teacher.trim().isEmpty()
                 ? "—" : entry.teacher.trim();
-        drawCenteredMultiline(canvas, teacherText,
-                inset(teacher, box.width() * 0.025f, box.height() * 0.08f), 2);
+
+        int accent = raid ? Color.rgb(214, 28, 43) : Color.rgb(48, 111, 179);
+
+        // Fixed sizes are based on card height, not text length. This keeps all
+        // subject names visually equal, with wrapping instead of random shrinking.
+        float subjectSize = Math.max(15f, cardHeight * 0.105f);
+        float teacherSize = Math.max(12f, cardHeight * 0.078f);
+        float roomSize = Math.max(16f, cardHeight * 0.118f);
+        float groupSize = Math.max(10f, cardHeight * 0.066f);
+
+        RectF subjectTextBox = inset(subject, box.width() * 0.025f, box.height() * 0.08f);
+        String subgroup = entry.subgroup == null ? "" : entry.subgroup.trim();
+        if (!subgroup.isEmpty()) {
+            float badgeW = Math.min(subject.width() * 0.27f, cardHeight * 0.33f);
+            RectF badge = new RectF(subject.left + box.width() * 0.022f,
+                    box.centerY() - cardHeight * 0.075f,
+                    subject.left + box.width() * 0.022f + badgeW,
+                    box.centerY() + cardHeight * 0.075f);
+            paint.setColor(raid ? Color.rgb(255, 226, 229) : Color.rgb(218, 238, 252));
+            canvas.drawRoundRect(badge, badge.height() * 0.35f, badge.height() * 0.35f, paint);
+
+            setText(bold, accent, groupSize);
+            String badgeText = subgroup.replace("ГР. ", "ГР.").replace("ГР ", "ГР.");
+            drawCenteredVertically(canvas, badgeText, badge.centerX(), badge);
+
+            subjectTextBox.left = badge.right + box.width() * 0.018f;
+        }
+
+        setText(bold, NAVY, subjectSize);
+        drawLeftCenteredMultiline(canvas, subjectText, subjectTextBox, 2);
+
+        setText(bold, NAVY, roomSize);
+        drawCenteredVertically(canvas, roomText, room.centerX(), room);
+
+        setText(medium, NAVY, teacherSize);
+        drawLeftCenteredMultiline(canvas, teacherText,
+                inset(teacher, box.width() * 0.030f, box.height() * 0.08f), 2);
     }
 
     private void drawNormalCenter(Canvas canvas, float w, float h, ZonedDateTime now) {
-        setText(bold, Color.WHITE, h * 0.099f);
-        drawCentered(canvas, now.format(DateTimeFormatter.ofPattern("HH:mm")),
-                w * 0.50f, h * 0.555f);
+        drawClock(canvas, w, h, now);
 
-        RectF status = new RectF(w * 0.382f, h * 0.594f, w * 0.618f, h * 0.755f);
-        paint.setColor(IVORY);
-        canvas.drawRoundRect(status, h * 0.018f, h * 0.018f, paint);
+        RectF status = new RectF(w * 0.382f, h * 0.615f, w * 0.618f, h * 0.805f);
+        drawStatusCard(canvas, status,
+                schedule.lesson > 0 ? schedule.lesson + " УРОК" : cleanPhase(schedule.phase),
+                schedule.secondsToLessonEnd > 0L ? "ДО КІНЦЯ УРОКУ" : "",
+                schedule.secondsToLessonEnd > 0L
+                        ? formatRemaining(schedule.secondsToLessonEnd) : "");
 
-        long remaining = 0L;
-        String phase = cleanPhase(schedule.phase);
-        String countdownLabel = "";
-        if (schedule.breakTime && schedule.secondsToNextLesson > 0L) {
-            remaining = schedule.secondsToNextLesson;
-            countdownLabel = "ДО КІНЦЯ ПЕРЕРВИ";
-        } else if (schedule.secondsToLessonEnd > 0L && schedule.lesson > 0) {
-            remaining = schedule.secondsToLessonEnd;
-            countdownLabel = "ДО КІНЦЯ УРОКУ";
-        }
-
-        if (remaining > 0L) {
-            setText(bold, NAVY, h * 0.038f);
-            drawCentered(canvas, phase, w * 0.50f, status.top + status.height() * 0.28f);
-
-            setText(bold, NAVY, h * 0.020f);
-            drawCentered(canvas, countdownLabel, w * 0.50f,
-                    status.top + status.height() * 0.52f);
-
-            setText(bold, NAVY, h * 0.052f);
-            drawCentered(canvas, formatRemaining(remaining), w * 0.50f,
-                    status.top + status.height() * 0.87f);
-        } else {
-            setText(bold, NAVY, h * 0.038f);
-            drawCenteredVertically(canvas, phase, w * 0.50f, status);
-        }
-
-        drawWeatherPanel(canvas, w, h);
+        drawWeatherPanel(canvas, w, h, h * 0.830f, h * 0.948f);
     }
 
-    private void drawAnnouncementCenter(Canvas canvas, float w, float h) {
-        setText(bold, Color.WHITE, h * 0.080f);
-        drawCentered(canvas, "ПЕРЕРВА", w * 0.50f, h * 0.545f);
+    private void drawBreakCenter(Canvas canvas, float w, float h, ZonedDateTime now) {
+        drawClock(canvas, w, h, now);
 
-        RectF box = new RectF(w * 0.375f, h * 0.585f, w * 0.625f, h * 0.755f);
-        paint.setColor(IVORY);
-        canvas.drawRoundRect(box, h * 0.018f, h * 0.018f, paint);
+        RectF status = new RectF(w * 0.382f, h * 0.615f, w * 0.618f, h * 0.805f);
+        String nextLesson = schedule.lesson > 0
+                ? "ДО ПОЧАТКУ " + schedule.lesson + " УРОКУ"
+                : "ДО НАСТУПНОГО УРОКУ";
+        drawStatusCard(canvas, status, "ПЕРЕРВА", nextLesson,
+                schedule.secondsToNextLesson > 0L
+                        ? formatRemaining(schedule.secondsToNextLesson) : "");
 
-        setText(bold, ORANGE, h * 0.021f);
-        drawCentered(canvas, "ОГОЛОШЕННЯ", w * 0.50f, box.top + box.height() * 0.24f);
-
-        setText(medium, NAVY, h * 0.021f);
-        drawCenteredMultiline(canvas, announcement,
-                new RectF(box.left + 18f, box.top + box.height() * 0.27f,
-                        box.right - 18f, box.bottom - 24f), 3);
-
-        if (schedule.secondsToNextLesson > 0L) {
-            setText(bold, NAVY, h * 0.020f);
-            drawCentered(canvas, "ДО КІНЦЯ ПЕРЕРВИ • "
-                            + formatRemaining(schedule.secondsToNextLesson),
-                    w * 0.50f, box.bottom - h * 0.020f);
+        if (showAnnouncement && !announcement.isEmpty()) {
+            RectF notice = new RectF(w * 0.365f, h * 0.812f, w * 0.635f, h * 0.862f);
+            paint.setColor(Color.argb(238, 250, 248, 241));
+            canvas.drawRoundRect(notice, h * 0.012f, h * 0.012f, paint);
+            setText(bold, ORANGE, h * 0.0155f);
+            String text = "ОГОЛОШЕННЯ • " + announcement;
+            drawCentered(canvas, ellipsize(text, notice.width() * 0.92f),
+                    notice.centerX(),
+                    notice.centerY() - (paint.ascent() + paint.descent()) / 2f);
+            drawWeatherPanel(canvas, w, h, h * 0.872f, h * 0.958f);
+        } else {
+            drawWeatherPanel(canvas, w, h, h * 0.830f, h * 0.948f);
         }
-        drawWeatherPanel(canvas, w, h);
     }
 
     private void drawRaidCenter(Canvas canvas, float w, float h, ZonedDateTime now) {
+        drawClock(canvas, w, h, now);
+
+        RectF alert = new RectF(w * 0.370f, h * 0.585f, w * 0.630f, h * 0.682f);
+        paint.setColor(Color.argb(246, 250, 248, 241));
+        canvas.drawRoundRect(alert, h * 0.016f, h * 0.016f, paint);
+
+        setText(bold, Color.rgb(211, 22, 38), h * 0.031f);
+        drawCentered(canvas, "ПОВІТРЯНА ТРИВОГА", alert.centerX(),
+                alert.top + alert.height() * 0.45f);
+        setText(bold, NAVY, h * 0.0175f);
+        drawCentered(canvas, "НЕГАЙНО ПРОЙДІТЬ В УКРИТТЯ", alert.centerX(),
+                alert.top + alert.height() * 0.77f);
+
+        RectF status = new RectF(w * 0.382f, h * 0.697f, w * 0.618f, h * 0.842f);
+        if (schedule.breakTime) {
+            String nextLesson = schedule.lesson > 0
+                    ? "ДО ПОЧАТКУ " + schedule.lesson + " УРОКУ"
+                    : "ДО НАСТУПНОГО УРОКУ";
+            drawStatusCard(canvas, status, "ПЕРЕРВА", nextLesson,
+                    schedule.secondsToNextLesson > 0L
+                            ? formatRemaining(schedule.secondsToNextLesson) : "");
+        } else {
+            drawStatusCard(canvas, status,
+                    schedule.lesson > 0 ? schedule.lesson + " УРОК" : cleanPhase(schedule.phase),
+                    schedule.secondsToLessonEnd > 0L ? "ДО КІНЦЯ УРОКУ" : "",
+                    schedule.secondsToLessonEnd > 0L
+                            ? formatRemaining(schedule.secondsToLessonEnd) : "");
+        }
+
+        drawWeatherPanel(canvas, w, h, h * 0.855f, h * 0.958f);
+    }
+
+    private void drawClock(Canvas canvas, float w, float h, ZonedDateTime now) {
         setText(bold, Color.WHITE, h * 0.099f);
         drawCentered(canvas, now.format(DateTimeFormatter.ofPattern("HH:mm")),
-                w * 0.50f, h * 0.555f);
+                w * 0.50f, h * 0.570f);
+    }
 
-        setText(bold, Color.WHITE, h * 0.043f);
-        drawCentered(canvas, "ПОВІТРЯНА ТРИВОГА", w * 0.50f, h * 0.645f);
-
-        setText(bold, Color.WHITE, h * 0.027f);
-        drawCentered(canvas, "НЕГАЙНО ПРОЙДІТЬ В УКРИТТЯ", w * 0.50f, h * 0.693f);
-
-        RectF lesson = new RectF(w * 0.382f, h * 0.726f, w * 0.618f, h * 0.810f);
+    private void drawStatusCard(Canvas canvas, RectF box,
+                                String title, String subtitle, String value) {
         paint.setColor(IVORY);
-        canvas.drawRoundRect(lesson, h * 0.016f, h * 0.016f, paint);
+        canvas.drawRoundRect(box, getHeight() * 0.018f, getHeight() * 0.018f, paint);
 
-        setText(bold, NAVY, h * 0.038f);
-        drawCenteredVertically(canvas, cleanPhase(schedule.phase), w * 0.50f, lesson);
+        setText(bold, NAVY, getHeight() * 0.038f);
+        drawCentered(canvas, title == null ? "" : title,
+                box.centerX(), box.top + box.height() * 0.27f);
 
-        // A subtle source line is retained for staff diagnostics but kept well
-        // below the emergency message so it never competes with the instruction.
-        if (detail != null && !detail.trim().isEmpty()) {
-            setText(regular, Color.argb(190, 255, 255, 255), h * 0.0125f);
-            drawCentered(canvas, ellipsize(detail, w * 0.30f), w * 0.50f, h * 0.852f);
+        if (subtitle != null && !subtitle.isEmpty()) {
+            setText(bold, NAVY, getHeight() * 0.020f);
+            drawCentered(canvas, subtitle, box.centerX(),
+                    box.top + box.height() * 0.52f);
+        }
+
+        if (value != null && !value.isEmpty()) {
+            setText(bold, NAVY, getHeight() * 0.054f);
+            drawCentered(canvas, value, box.centerX(),
+                    box.top + box.height() * 0.88f);
         }
     }
 
-    private void drawWeatherPanel(Canvas canvas, float w, float h) {
-        RectF box = new RectF(w * 0.284f, h * 0.790f, w * 0.716f, h * 0.952f);
-        paint.setColor(Color.argb(48, 5, 70, 130));
-        canvas.drawRoundRect(box, h * 0.018f, h * 0.018f, paint);
+    private void drawWeatherPanel(Canvas canvas, float w, float h,
+                                  float top, float bottom) {
+        RectF box = new RectF(w * 0.382f, top, w * 0.618f, bottom);
+
+        paint.setColor(IVORY);
+        canvas.drawRoundRect(box, h * 0.016f, h * 0.016f, paint);
 
         stroke.setStyle(Paint.Style.STROKE);
-        stroke.setStrokeWidth(Math.max(1f, h * 0.0013f));
-        stroke.setColor(Color.argb(78, 255, 255, 255));
-        canvas.drawRoundRect(box, h * 0.018f, h * 0.018f, stroke);
+        stroke.setStrokeWidth(Math.max(1f, h * 0.0012f));
+        stroke.setColor(Color.argb(38, 8, 53, 111));
+        canvas.drawRoundRect(box, h * 0.016f, h * 0.016f, stroke);
 
-        float leftW = box.width() * 0.43f;
-        RectF current = new RectF(box.left, box.top, box.left + leftW, box.bottom);
-        canvas.drawLine(current.right, box.top + 14f, current.right, box.bottom - 14f, stroke);
+        float iconS = Math.min(box.height() * 0.45f, box.width() * 0.10f);
+        float iconX = box.left + box.width() * 0.115f;
+        float iconY = box.centerY() + box.height() * 0.04f;
+        drawWeatherIcon(canvas, weatherAvailable ? weatherCode : -1, iconX, iconY, iconS);
 
-        setText(bold, Color.WHITE, h * 0.023f);
-        canvas.drawText("Кропивницький", current.left + h * 0.027f,
-                current.top + h * 0.040f, paint);
+        float textLeft = box.left + box.width() * 0.255f;
+        setText(bold, NAVY, Math.max(12f, box.height() * 0.19f));
+        canvas.drawText("ПОГОДА • КРОПИВНИЦЬКИЙ", textLeft,
+                box.top + box.height() * 0.39f, paint);
 
-        setText(regular, Color.argb(235, 255, 255, 255), h * 0.014f);
-        String today = "Сьогодні, " + KyivTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        canvas.drawText(today, current.left + h * 0.027f,
-                current.top + h * 0.066f, paint);
-
+        String line;
         if (weatherAvailable) {
-            setText(bold, Color.WHITE, h * 0.051f);
-            String temp = Math.round(weatherTemperatureC) + "°C";
-            canvas.drawText(temp, current.left + h * 0.027f,
-                    current.bottom - h * 0.026f, paint);
-
-            drawWeatherIcon(canvas, weatherCode,
-                    current.right - current.width() * 0.25f,
-                    current.centerY() + h * 0.018f, h * 0.040f);
-
-            setText(regular, Color.argb(225, 255, 255, 255), h * 0.0125f);
-            String condition = weatherCondition;
-            if (!Double.isNaN(weatherApparentC)) {
-                condition += " • відч. " + Math.round(weatherApparentC) + "°";
-            }
-            canvas.drawText(ellipsize(condition, current.width() * 0.54f),
-                    current.left + h * 0.027f, current.bottom - h * 0.007f, paint);
+            long rounded = Math.round(weatherTemperatureC);
+            String temp = String.format(Locale.ROOT, "%+d°", rounded);
+            line = temp + " • " + weatherCondition.toLowerCase(new Locale("uk", "UA"));
         } else {
-            setText(medium, Color.WHITE, h * 0.018f);
-            drawCenteredMultiline(canvas, weatherCondition,
-                    inset(current, h * 0.025f, h * 0.035f), 2);
+            line = weatherCondition;
         }
 
-        drawForecastDays(canvas, new RectF(current.right, box.top, box.right, box.bottom));
+        setText(medium, NAVY, Math.max(12f, box.height() * 0.20f));
+        canvas.drawText(ellipsize(line, box.right - textLeft - box.width() * 0.04f),
+                textLeft, box.top + box.height() * 0.73f, paint);
     }
 
     private void drawForecastDays(Canvas canvas, RectF area) {
@@ -671,20 +712,87 @@ public final class SignageView extends View {
     private void drawSilence(Canvas canvas, float w, float h, float pad) {
         drawStandaloneLogo(canvas, w, h);
 
-        setText(bold, Color.rgb(247, 215, 134), h * 0.065f);
-        drawCentered(canvas, "ХВИЛИНА МОВЧАННЯ", w * 0.50f, h * 0.40f);
+        setText(bold, Color.rgb(248, 241, 224), h * 0.060f);
+        drawCentered(canvas, "ХВИЛИНА МОВЧАННЯ", w * 0.50f, h * 0.395f);
 
         float cx = w * 0.50f;
-        float baseY = h * 0.71f;
-        paint.setColor(Color.rgb(240, 238, 228));
-        canvas.drawRoundRect(new RectF(cx - w * 0.026f, baseY - h * 0.18f,
-                cx + w * 0.026f, baseY), 10f, 10f, paint);
-        paint.setColor(Color.rgb(255, 178, 48));
-        canvas.drawOval(new RectF(cx - w * 0.018f, baseY - h * 0.27f,
-                cx + w * 0.018f, baseY - h * 0.175f), paint);
+        float candleTop = h * 0.515f;
+        float candleBottom = h * 0.745f;
+        float candleW = Math.min(w * 0.058f, h * 0.085f);
+        float flameCy = candleTop - h * 0.060f;
 
-        setText(regular, Color.LTGRAY, h * 0.025f);
-        drawCentered(canvas, detail, w * 0.50f, h * 0.82f);
+        // Soft memorial glow around the flame.
+        paint.setShader(new RadialGradient(
+                cx, flameCy, h * 0.12f,
+                new int[]{
+                        Color.argb(150, 255, 177, 52),
+                        Color.argb(62, 255, 139, 20),
+                        Color.TRANSPARENT
+                },
+                new float[]{0f, 0.46f, 1f},
+                Shader.TileMode.CLAMP));
+        canvas.drawCircle(cx, flameCy, h * 0.12f, paint);
+        paint.setShader(null);
+
+        // Candle body: warm ivory gradient with a subtle wax highlight.
+        RectF body = new RectF(cx - candleW / 2f, candleTop,
+                cx + candleW / 2f, candleBottom);
+        paint.setShader(new LinearGradient(
+                body.left, body.top, body.right, body.bottom,
+                new int[]{
+                        Color.rgb(255, 250, 232),
+                        Color.rgb(246, 235, 209),
+                        Color.rgb(224, 207, 178)
+                },
+                new float[]{0f, 0.58f, 1f},
+                Shader.TileMode.CLAMP));
+        canvas.drawRoundRect(body, candleW * 0.17f, candleW * 0.17f, paint);
+        paint.setShader(null);
+
+        paint.setColor(Color.rgb(255, 248, 222));
+        canvas.drawOval(new RectF(body.left, body.top - candleW * 0.10f,
+                body.right, body.top + candleW * 0.11f), paint);
+
+        // Small wax drip gives the candle a more natural silhouette.
+        paint.setColor(Color.rgb(245, 232, 204));
+        canvas.drawRoundRect(new RectF(body.right - candleW * 0.18f, body.top + candleW * 0.02f,
+                body.right - candleW * 0.08f, body.top + candleW * 0.55f),
+                candleW * 0.05f, candleW * 0.05f, paint);
+
+        stroke.setStyle(Paint.Style.STROKE);
+        stroke.setStrokeWidth(Math.max(2f, h * 0.003f));
+        stroke.setColor(Color.rgb(79, 54, 38));
+        canvas.drawLine(cx, body.top - candleW * 0.03f,
+                cx, body.top - candleW * 0.29f, stroke);
+
+        Path outer = new Path();
+        outer.moveTo(cx, flameCy - h * 0.070f);
+        outer.cubicTo(cx + candleW * 0.40f, flameCy - h * 0.018f,
+                cx + candleW * 0.30f, flameCy + h * 0.028f,
+                cx, flameCy + h * 0.040f);
+        outer.cubicTo(cx - candleW * 0.34f, flameCy + h * 0.020f,
+                cx - candleW * 0.28f, flameCy - h * 0.020f,
+                cx, flameCy - h * 0.070f);
+        outer.close();
+
+        paint.setShader(new LinearGradient(
+                cx, flameCy - h * 0.070f, cx, flameCy + h * 0.040f,
+                Color.rgb(255, 246, 166), Color.rgb(255, 133, 21),
+                Shader.TileMode.CLAMP));
+        canvas.drawPath(outer, paint);
+        paint.setShader(null);
+
+        Path inner = new Path();
+        inner.moveTo(cx, flameCy - h * 0.040f);
+        inner.cubicTo(cx + candleW * 0.17f, flameCy - h * 0.005f,
+                cx + candleW * 0.13f, flameCy + h * 0.022f,
+                cx, flameCy + h * 0.026f);
+        inner.cubicTo(cx - candleW * 0.14f, flameCy + h * 0.016f,
+                cx - candleW * 0.12f, flameCy - h * 0.010f,
+                cx, flameCy - h * 0.040f);
+        inner.close();
+        paint.setColor(Color.rgb(255, 252, 220));
+        canvas.drawPath(inner, paint);
     }
 
     private void drawFallback(Canvas canvas, float w, float h, float pad) {
@@ -703,14 +811,6 @@ public final class SignageView extends View {
                     w * 0.50f + logoW / 2f, h * 0.10f + logoH);
             canvas.drawBitmap(logo, null, dest, paint);
         }
-    }
-
-    private void drawFooter(Canvas canvas, float w, float h, float pad) {
-        setText(regular, Color.argb(165, 255, 255, 255), Math.max(11f, h * 0.012f));
-        String left = productionDataPresent ? "DATA OK" : "DATA CHECK";
-        left += " • " + screenProfile;
-        if (!clockStatus.isEmpty()) left += " • " + clockStatus;
-        canvas.drawText(ellipsize(left, w * 0.54f), pad, h - h * 0.016f, paint);
     }
 
     private static String weekLabel(String subtitle) {
@@ -780,6 +880,18 @@ public final class SignageView extends View {
         float y = box.centerY() - totalH / 2f - fm.ascent;
         for (String line : wrapped) {
             drawCentered(canvas, line, box.centerX(), y);
+            y += lineH;
+        }
+    }
+
+    private void drawLeftCenteredMultiline(Canvas canvas, String text, RectF box, int maxLines) {
+        String[] wrapped = wrapLines(text == null ? "" : text, box.width() - 4f, maxLines);
+        Paint.FontMetrics fm = paint.getFontMetrics();
+        float lineH = (fm.descent - fm.ascent) * 1.10f;
+        float totalH = lineH * wrapped.length;
+        float y = box.centerY() - totalH / 2f - fm.ascent;
+        for (String line : wrapped) {
+            canvas.drawText(line, box.left, y, paint);
             y += lineH;
         }
     }

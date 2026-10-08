@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-08-sync-01",
+  "version": "2026-10-08-2.7.0.15-final-tv-design",
   "schedules": {
     "schedule_numerator.json": {
       "url": "schedule_numerator.json",
